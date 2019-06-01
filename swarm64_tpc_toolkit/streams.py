@@ -48,15 +48,15 @@ class Streams:
 
     def _print_results(self, results):
         df = pandas.DataFrame()
+
         for column in results:
             key = list(column.keys())[0]
             columns = [f'{key} start', f'{key} stop', f'{key} status']
-            queries = sorted(list(column[key].keys()))
 
-            _df = pandas.DataFrame(data=column[key]).transpose()
+            _df = pandas.DataFrame(data=column[key]).transpose().sort_index()
             _df.columns = columns
 
-            df[f'Stream {key:02} metric'] = _df[columns[1]] - _df[columns[0]]
+            df[f'Stream {key:02} metric'] = (_df[columns[1]] - _df[columns[0]]).apply(lambda x: round(x, 2))
             df[f'Stream {key:02} status'] = _df[columns[2]].transform(lambda x: x.name)
 
         df.index = _df.index
