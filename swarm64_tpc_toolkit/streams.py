@@ -63,7 +63,8 @@ class Streams:
         df.index.name = 'Query'
 
         if self.output == 'print':
-            print(df)
+            with pandas.option_context('display.max_rows', None, 'display.max_columns', None):
+                print(df)
         elif self.output == 'csv':
             print(df.to_csv(sep=';'))
         else:
