@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+
+import argparse
+import logging
+import sys
+
+from logging.config import fileConfig
+
+from swarm64_tpc_toolkit.streams import Streams
+
+
+fileConfig('configs/logging.ini')
+logger = logging.getLogger()
+
+if __name__ == '__main__':
+    args_to_parse = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
+
+    args_to_parse.add_argument('--dsn', required=True, help=(
+        'The PostgreSQL DSN to connect to. Supply with DB, e.g. '
+        'postgresql://postgres@localhost/dbname'
+    ))
+
+    args_to_parse.add_argument('--config', required=False, help=(
+        'Optional YAML override configuration file to be applied before running. '
+        'Supply a full path to the file.'
+    ))
+
+    args_to_parse.add_argument('--benchmark', required=True, choices=('tpch', 'tpcds'), help=(
+        'Which benchmark to run.'
+    ))
+
+    args_to_parse.add_argument('--timeout', default=None, help=(
+        'Statement timeout to be used. If there is a timeout in the override '
+        'configuration that one will take precedence.'
+    ))
+
+    args_to_parse.add_argument('--streams', type=int, default=0, help=(
+        'How many streams (virtual users) to run in parallel for the selected benchmark. '
+        'Pass "0" to run a single stream. The default is "0".'
+    ))
+
+    args_to_parse.add_argument('--stream-offset', type=int, default=1, help=(
+        'With which stream to start if running multiple streams. Defaults to "1".'
+    ))
+
+    args_to_parse.add_argument('--netdata-url', default=None, help=(
+        'The URL to netdata to fetch statistics from it.'
+    ))
+
+    args_to_parse.add_argument('--disk', required='--netdata-url' in sys.argv, help=(
+        'Which disk to grep statistics for. Only required if netdata-url is present.'
+    ))
+
+    args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', help=(
+        'How the results output should look like'
+    ))
+
+    args = args_to_parse.parse_args()
+    Streams(args).run()

@@ -1,0 +1,7 @@
+timeout: 15min
+ignore:
+  - none
+
+dbconfig:
+  max_parallel_workers: 144
+  max_parallel_workers_per_gather: 144
