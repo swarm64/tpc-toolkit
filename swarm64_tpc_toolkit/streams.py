@@ -48,7 +48,7 @@ class Streams:
 
     def _print_results(self, results):
         df = pandas.DataFrame()
-        for column in x:
+        for column in results:
             key = list(column.keys())[0]
             columns = [f'{key} start', f'{key} stop', f'{key} status']
             queries = sorted(list(column[key].keys()))

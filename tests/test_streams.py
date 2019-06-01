@@ -13,6 +13,8 @@ def args():
         streams = 0
         netdata_url = None
         benchmark = 'tpch'
+        stream_offset = 1
+        output = 'csv'
 
     return DefaultArgs
 
@@ -139,6 +141,7 @@ def test_run_stream(mocker, args):
 
 def test_run(mocker, args):
     s = streams.Streams(args)
+    mocker.patch.object(s, '_print_results', autospec=True)
     db_mock = mocker.patch.object(s, 'db', autospec=True)
     run_streams_mock = mocker.patch.object(s, 'run_streams')
     s.run()
