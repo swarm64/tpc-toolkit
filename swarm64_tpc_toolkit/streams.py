@@ -94,7 +94,7 @@ class Streams:
         if self.num_streams == 0:
             return ((0,),)
         else:
-            return tuple((stream,) for stream in range(self.stream_offset, self.num_streams + 1))
+            return tuple((stream,) for stream in range(self.stream_offset, self.num_streams + self.stream_offset + 1))
 
     def run_streams(self):
         with Pool(processes=max(self.num_streams, 1)) as pool:
