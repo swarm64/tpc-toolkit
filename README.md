@@ -93,12 +93,12 @@ granularly. An example YAML file is as follows:
       - 22
 
     dbconfig:
-      max_parallel_workers: 36
-      max_parallel_workers_per_gather: 36
+      max_parallel_workers: 96
+      max_parallel_workers_per_gather: 32
 
 To use this file, pass the `--config=<path-to-file>` argument to the test
 executor. In this example, the query timeout is set to `30min`. Queries 20, 21,
 and 22 will not execute. Additionally, the database parameters
-`max_parallel_workers` and `max_parallel_workers_per_gather` will change to
-`36`. Any change to the database configuration is applied before the benchmark
-starts and are reverted after the benchmark completes.
+`max_parallel_workers` will change to 96 and `max_parallel_workers_per_gather`
+will change to `32`. Any change to the database configuration is applied before
+the benchmark starts and are reverted after the benchmark completes.
