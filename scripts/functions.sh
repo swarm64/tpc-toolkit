@@ -78,7 +78,11 @@ case $i in
 esac
 done
 
-PSQL="psql -U postgres -h ${DB_HOST} -p ${DB_PORT}"
+if [ "$DB_HOST" = "socket" ]; then
+    PSQL="psql -U postgres"
+else
+    PSQL="psql -U postgres -h ${DB_HOST} -p ${DB_PORT}"
+fi
 
 function check_and_fail {
     if [ -z ${!1+x} ]; then
