@@ -21,7 +21,7 @@ if __name__ == '__main__':
         'postgresql://postgres@localhost/dbname'
     ))
 
-    args_to_parse.add_argument('--config', required=False, help=(
+    args_to_parse.add_argument('--config', required=False, default=None, help=(
         'Optional YAML override configuration file to be applied before running. '
         'Supply a full path to the file.'
     ))
