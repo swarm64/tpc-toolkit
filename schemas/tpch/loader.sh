@@ -9,7 +9,7 @@ function ingest {
 
     echo "Copying $BENCHMARK SF${SCALE_FACTOR} data to ${TABLE}"
 
-    PSQL_COPY="COPY $TABLE FROM STDIN WITH DELIMITER '|'"
+    PSQL_COPY="\COPY $TABLE FROM STDIN WITH DELIMITER '|'"
     DBGEN="./dbgen -s $SCALE_FACTOR -T $TABLE_CODE -o"
 
     if [ -z $TOTAL_CHUNKS ] || [ "$SCALE_FACTOR" -eq 1 ]; then
