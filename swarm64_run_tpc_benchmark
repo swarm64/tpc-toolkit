@@ -56,5 +56,10 @@ if __name__ == '__main__':
         'How the results output should look like'
     ))
 
+    args_to_parse.add_argument('--csv-file', default='results.csv', help=(
+        'Where to save the csv file, if csv output is selected. '
+        'The default is results.csv in the current directory.'
+    ))
+
     args = args_to_parse.parse_args()
     Streams(args).run()
