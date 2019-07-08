@@ -22,6 +22,7 @@ class Streams:
         self.query_dir = os.path.join('queries', args.benchmark)
         self.stream_offset = args.stream_offset
         self.output = args.output
+        self.csv_file = args.csv_file
 
     @staticmethod
     def _make_config(args):
@@ -62,13 +63,14 @@ class Streams:
         df.index = _df.index
         df.index.name = 'Query'
 
-        if self.output == 'print':
+        if 'print' in self.output:
             with pandas.option_context('display.max_rows', None, 'display.max_columns', None):
                 print(df)
-        elif self.output == 'csv':
-            print(df.to_csv(sep=';'))
-        else:
-            raise ValueError(f'Unknown output format {self.output}')
+        if 'csv' in self.output:
+            if self.csv_file:
+                df.to_csv(self.csv_file, sep=';')
+        if not self.output:
+            raise ValueError(f'No output format was defined.')
 
     def run(self):
         try:
