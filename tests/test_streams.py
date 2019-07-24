@@ -1,5 +1,6 @@
 
 import pytest
+import pandas as pd
 
 from swarm64_tpc_toolkit import streams
 
@@ -160,3 +161,16 @@ def test_run_keyboard_interrupt(mocker, args):
     assert db_mock.reset_config.call_count == 2
     db_mock.apply_config.assert_called_once_with({})
     run_streams_mock.assert_called_once()
+
+def test_sort_output():
+    data_in =(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    index_in = (5, 1, '3a', 3, 11, 20, '3b', 4, 21, 2)
+
+    df = pd.DataFrame(data_in, index=index_in)
+    df = streams.Streams.sort_df(df)
+
+    data_out = (2, 10, 4, 3, 7, 8, 1, 5, 6, 9)
+    index_out = (1, 2, 3, '3a', '3b', 4, 5, 11, 20, 21)
+
+    assert list(df[0].index) == index_out
+    assert list(df[0]) == data_out

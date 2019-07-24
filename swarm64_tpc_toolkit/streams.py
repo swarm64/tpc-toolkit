@@ -46,6 +46,11 @@ class Streams:
             sql = sql.replace(modification[0], modification[1])
         return sql
 
+    @staticmethod
+    def sort_df(df):
+        # TODO: Implement me
+        return df
+
     def _print_results(self, results):
         df = pandas.DataFrame()
 
