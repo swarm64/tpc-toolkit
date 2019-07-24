@@ -16,6 +16,7 @@ def args():
         benchmark = 'tpch'
         stream_offset = 1
         output = 'csv'
+        csv_file = 'results.csv'
 
     return DefaultArgs
 

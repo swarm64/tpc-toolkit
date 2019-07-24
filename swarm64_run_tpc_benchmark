@@ -52,8 +52,14 @@ if __name__ == '__main__':
         'Which disk to grep statistics for. Only required if netdata-url is present.'
     ))
 
-    args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', help=(
-        'How the results output should look like'
+    args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', nargs='+',
+        help=('How the results output should look like. '
+              'Multiple options possible, separated by space')
+    )
+
+    args_to_parse.add_argument('--csv-file', default='results.csv', help=(
+        'Where to save the csv file, if csv output is selected. '
+        'The default is results.csv in the current directory.'
     ))
 
     args = args_to_parse.parse_args()
