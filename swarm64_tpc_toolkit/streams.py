@@ -50,7 +50,6 @@ class Streams:
 
     @staticmethod
     def sort_df(df):
-        # TODO: Implement me
         return df.reindex(index=natsorted(df.index))
 
     def _print_results(self, results):
