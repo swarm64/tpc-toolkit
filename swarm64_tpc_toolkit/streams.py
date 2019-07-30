@@ -3,6 +3,7 @@ import logging
 import os
 
 from multiprocessing import Pool
+from natsort import natsorted
 
 import pandas
 import yaml
@@ -50,7 +51,7 @@ class Streams:
     @staticmethod
     def sort_df(df):
         # TODO: Implement me
-        return df
+        return df.reindex(index=natsorted(df.index))
 
     def _print_results(self, results):
         df = pandas.DataFrame()
