@@ -61,7 +61,7 @@ class Streams:
 
             _df = pandas.DataFrame(data=column[key]).transpose()
             _df.index = _df.index.astype(str)
-            _df.sort_index(inplace=True)
+            _df = self.sort_df(_df)
             _df.columns = columns
 
             df[f'Stream {key:02} metric'] = (_df[columns[1]] - _df[columns[0]]).apply(lambda x: round(x, 2))
