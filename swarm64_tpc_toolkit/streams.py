@@ -132,8 +132,10 @@ class Streams:
             if self.dump_query_results:
                 filename = f'query_results/{stream_id}_{query_id}.txt'
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
-                with open(filename, 'w') as f:
-                    f.write(','.join(query_result))
+                print('DEBUGGING')
+                print(query_result)
+                # with open(filename, 'w') as f:
+                #     f.write(','.join(query_result))
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
