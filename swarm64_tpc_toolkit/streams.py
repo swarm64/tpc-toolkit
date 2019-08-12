@@ -130,7 +130,9 @@ class Streams:
             timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0))
 
             if self.dump_query_results:
-                with open(f'query_results/{stream_id}_{query_id}.txt', 'w') as f:
+                filename = f'query_results/{stream_id}_{query_id}.txt'
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+                with open(filename, 'w') as f:
                     f.write(query_result)
 
             runtime = round(timing.stop - timing.start, 2)
