@@ -44,7 +44,10 @@ class DB:
             try:
                 start = time.time()
                 conn.cursor.execute(sql)
-                query_result = conn.cursor.fetchall()
+                if conn.cursor.description is not None:
+                    query_result = conn.cursor.fetchall()
+                else:
+                    query_result = None
                 status = Status.OK
 
             except psycopg2.extensions.QueryCanceledError:
