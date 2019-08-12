@@ -24,6 +24,7 @@ class Streams:
         self.stream_offset = args.stream_offset
         self.output = args.output
         self.csv_file = args.csv_file
+        self.dump_query_results = args.dump_query_results
 
     @staticmethod
     def _make_config(args):
@@ -126,7 +127,11 @@ class Streams:
             query_sql = Streams.apply_sql_modifications(query_sql, (('revenue0', f'revenue{stream_id}'),))
 
             LOG.info(f'running  {pretext}.')
-            timing = self.db.run_query(query_sql, self.config.get('timeout', 0))
+            timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0))
+
+            if self.dump_query_results:
+                with open(f'query_results/{stream_id}_{query_id}.txt', 'w') as f:
+                    f.write(query_result)
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')

@@ -44,6 +44,7 @@ class DB:
             try:
                 start = time.time()
                 conn.cursor.execute(sql)
+                query_result = conn.cursor.fetchall()
                 status = Status.OK
 
             except psycopg2.extensions.QueryCanceledError:
@@ -55,4 +56,4 @@ class DB:
             finally:
                 stop = time.time()
 
-            return Timing(start=start, stop=stop, status=status)
+            return Timing(start=start, stop=stop, status=status), query_result
