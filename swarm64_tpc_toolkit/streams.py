@@ -3,6 +3,7 @@ import logging
 import os
 
 from multiprocessing import Pool
+from natsort import natsorted
 
 import pandas
 import yaml
@@ -47,6 +48,10 @@ class Streams:
             sql = sql.replace(modification[0], modification[1])
         return sql
 
+    @staticmethod
+    def sort_df(df):
+        return df.reindex(index=natsorted(df.index))
+
     def _print_results(self, results):
         df = pandas.DataFrame()
 
@@ -55,8 +60,7 @@ class Streams:
             columns = [f'{key} start', f'{key} stop', f'{key} status']
 
             _df = pandas.DataFrame(data=column[key]).transpose()
-            _df.index = _df.index.astype(str)
-            _df.sort_index(inplace=True)
+            _df = Streams.sort_df(_df)
             _df.columns = columns
 
             df[f'Stream {key:02} metric'] = (_df[columns[1]] - _df[columns[0]]).apply(lambda x: round(x, 2))
