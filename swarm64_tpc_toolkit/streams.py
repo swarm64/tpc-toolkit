@@ -131,12 +131,14 @@ class Streams:
             timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0))
 
             if self.dump_query_results and query_result is not None:
+                query_result_header = query_result[0]
+                query_result_data = query_result[1]
                 filename = f'query_results/{stream_id}_{query_id}.csv'
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
                 with open(filename, 'w') as f:
                     csvfile = csv.writer(f)
-                    csvfile.writerow(query_result[0])
-                    csvfile.writerows(query_result[1])
+                    csvfile.writerow(query_result_header)
+                    csvfile.writerows(query_result_data)
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
