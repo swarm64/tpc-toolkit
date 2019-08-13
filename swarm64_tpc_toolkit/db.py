@@ -45,7 +45,7 @@ class DB:
                 start = time.time()
                 conn.cursor.execute(sql)
                 if conn.cursor.description is not None:
-                    query_result = conn.cursor.fetchall()
+                    query_result = conn.cursor.description, conn.cursor.fetchall()
                 else:
                     query_result = None
                 status = Status.OK
