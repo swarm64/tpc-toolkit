@@ -1,6 +1,7 @@
 
 import logging
 import os
+import csv
 
 from multiprocessing import Pool
 from natsort import natsorted
@@ -133,7 +134,10 @@ class Streams:
                 filename = f'query_results/{stream_id}_{query_id}.txt'
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
                 with open(filename, 'w') as f:
-                    f.write(str(query_result))
+                    csvfile = csv.writer(f)
+                    csvfile.writerow(query_result[0])
+                    csvfile.writerows(query_result[1])
+                    # f.write(str(query_result))
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
