@@ -135,9 +135,8 @@ class Streams:
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
                 with open(filename, 'w') as f:
                     csvfile = csv.writer(f)
-                    # csvfile.writerow(query_result[0])
+                    csvfile.writerow(query_result[0])
                     print(f'header: {query_result[0]}')
-                    print(f'data: {query_result[1]}')
                     csvfile.writerows(query_result[1])
                     # f.write(str(query_result))
 
