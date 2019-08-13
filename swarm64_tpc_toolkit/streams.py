@@ -133,10 +133,11 @@ class Streams:
             if self.dump_query_results:
                 filename = f'query_results/{stream_id}_{query_id}.txt'
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
+                if query_id == 15:
+                    print(f'Query 15: {query_result}')
                 with open(filename, 'w') as f:
                     csvfile = csv.writer(f)
                     csvfile.writerow(query_result[0])
-                    print(f'header: {query_result[0]}')
                     csvfile.writerows(query_result[1])
                     # f.write(str(query_result))
 
