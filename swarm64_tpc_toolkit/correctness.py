@@ -1,4 +1,3 @@
-import glob
 import logging
 import os
 import pandas as pd
@@ -18,10 +17,11 @@ class CorrectnessCheck:
         return filepath
 
     def get_queries_results(self):
-        for stream_id, timings in self.query_results.iterrows():
-            for query_id, timing in timings:
-                if timing.status.name == 'OK':
-                    yield stream_id, query_id
+        for stream in self.query_results:
+            stream_id = list(stream.keys())[0]
+            for query_id, timing in stream[str(stream_id)]:
+                    if timing.status.name == 'OK':
+                        yield stream_id, query_id
 
     @staticmethod
     def from_reference_result_to_df(reference, query_number):
