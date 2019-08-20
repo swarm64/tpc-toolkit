@@ -10,6 +10,7 @@ import pandas
 import yaml
 
 from .db import DB
+from .correctness import CorrectnessCheck
 
 
 LOG = logging.getLogger()
@@ -22,6 +23,7 @@ class Streams:
         self.num_streams = args.streams
         self.netdata_url = args.netdata_url
         self.query_dir = os.path.join('queries', args.benchmark)
+        self.benchmark = args.benchmark
         self.stream_offset = args.stream_offset
         self.output = args.output
         self.csv_file = args.csv_file
@@ -86,6 +88,7 @@ class Streams:
             self.db.apply_config(self.config.get('dbconfig', {}))
 
             results = self.run_streams()
+            CorrectnessCheck(10, self.benchmark, results)
             self._print_results(results)
 
         except KeyboardInterrupt:
