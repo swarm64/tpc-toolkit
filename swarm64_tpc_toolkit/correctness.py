@@ -6,39 +6,21 @@ LOG = logging.getLogger()
 
 
 class CorrectnessCheck:
-    def __init__(self, scale_factor, benchmark, query_results):
+    def __init__(self, scale_factor, benchmark):
         self.scale_factor = scale_factor
         self.query_output_folder = 'query_results'
-        self.correctness_results_folder = os.path.join('correctness_results', benchmark)
-        self.query_results = query_results
+        self.correctness_results_folder = os.path.join('correctness_results', benchmark, f'sf{self.scale_factor}')
 
     def get_correctness_filepath(self, query_id):
-        filepath = f'{self.correctness_results_folder}/sf{self.scale_factor}_{query_id}.csv'
+        filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
 
     def get_queries_results(self):
         for stream in self.query_results:
-            stream_id = list(stream.keys())[0]
-            for query_id, timing in stream[str(stream_id)]:
+            for stream_id, timings in stream.items():
+                for query_id, timing in timings.items():
                     if timing.status.name == 'OK':
                         yield stream_id, query_id
-
-    @staticmethod
-    def from_reference_result_to_df(reference, query_number):
-        try:
-            reference_result = reference[str(query_number)]['result']
-
-            if reference_result is None or reference[str(query_number)]['state'] != 'ok':
-                LOG.info(f'Reference does not exist for Query {query_number}. Skipping...')
-                return None
-
-            reference_result_df = pd.DataFrame.from_records(reference_result['rows'],
-                                                            columns=reference_result['keys'])
-
-            return reference_result_df
-
-        except KeyError:
-            LOG.info(f'Reference does not exist for Query {query_number}. Skipping...')
 
     @staticmethod
     def make_equal_types(first_df, second_df):
@@ -51,7 +33,10 @@ class CorrectnessCheck:
         return second_df
 
     @staticmethod
-    def find_differences(first_df, second_df):
+    def has_differences(first_df, second_df):
+
+        if first_df is None or second_df is None:
+            return True
 
         first_df = CorrectnessCheck.make_equal_types(second_df, first_df)
 
@@ -60,28 +45,27 @@ class CorrectnessCheck:
         diff_rows_count = diff.shape[0]
 
         if diff_rows_count > 0:
-            LOG.warning('Mismatch')
-            LOG.warning(diff)
+            return True
         else:
-            LOG.info('Match')
+            return False
 
-    def check_query_correctness(self):
+    def check_correctness(self, stream_id, query_number):
 
-        for stream_id, query_number in self.get_queries_results():
-            LOG.info(f'Checking Stream={stream_id}, Query={query_number}')
-            filepath = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
+        LOG.debug(f'Checking Stream={stream_id}, Query={query_number}')
+        filepath = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
+        benchmark_result = correctness_result = None
 
-            try:
-                benchmark_result = pd.read_csv(filepath)
-            except pd.errors.EmptyDataError:
-                LOG.info(f'{stream_id}_{query_number}.csv empty.')
-                benchmark_result = None
+        try:
+            benchmark_result = pd.read_csv(filepath)
+        except pd.errors.EmptyDataError:
+            LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
 
-            try:
-                correctness_results = pd.read_csv(self.get_correctness_filepath(query_number))
-            except pd.errors.EmptyDataError:
-                LOG.info(f'Query {query_number} is empty in correctness results.')
-                correctness_results = None
+        try:
+            correctness_result = pd.read_csv(self.get_correctness_filepath(query_number))
+        except pd.errors.EmptyDataError:
+            LOG.debug(f'Query {query_number} is empty in correctness results.')
+        except FileNotFoundError:
+            LOG.debug(f'File not found!')
 
-            CorrectnessCheck.find_differences(benchmark_result, correctness_results)
+        return 'MisMatch' if CorrectnessCheck.has_differences(benchmark_result, correctness_result) else 'OK'
 
