@@ -62,5 +62,10 @@ if __name__ == '__main__':
         'The default is results.csv in the current directory.'
     ))
 
+    args_to_parse.add_argument('--dump-query-results', type=bool, default=False, help=(
+        'Whether to save the query results for correctness checking.'
+        'Output is written to the query_results folder.'
+    ))
+
     args = args_to_parse.parse_args()
     Streams(args).run()

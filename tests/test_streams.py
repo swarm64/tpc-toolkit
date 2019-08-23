@@ -17,6 +17,7 @@ def args():
         stream_offset = 1
         output = 'csv'
         csv_file = 'results.csv'
+        dump_query_results = False
 
     return DefaultArgs
 

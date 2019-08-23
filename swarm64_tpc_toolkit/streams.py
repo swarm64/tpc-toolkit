@@ -1,6 +1,7 @@
 
 import logging
 import os
+import csv
 
 from multiprocessing import Pool
 from natsort import natsorted
@@ -24,6 +25,7 @@ class Streams:
         self.stream_offset = args.stream_offset
         self.output = args.output
         self.csv_file = args.csv_file
+        self.dump_query_results = args.dump_query_results
 
     @staticmethod
     def _make_config(args):
@@ -126,7 +128,10 @@ class Streams:
             query_sql = Streams.apply_sql_modifications(query_sql, (('revenue0', f'revenue{stream_id}'),))
 
             LOG.info(f'running  {pretext}.')
-            timing = self.db.run_query(query_sql, self.config.get('timeout', 0))
+            timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0))
+
+            if self.dump_query_results:
+                Streams._save_query_output(stream_id, query_id, query_result)
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
@@ -134,3 +139,21 @@ class Streams:
             timings[query_id] = timing
 
         return {stream_id: timings}
+
+    @staticmethod
+    def _save_query_output(stream_id, query_id, query_result):
+
+        filename = f'query_results/{stream_id}_{query_id}.csv'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        if query_result is not None:
+            query_result_header = query_result[0]
+            query_result_data = query_result[1]
+        else:
+            query_result_header = []
+            query_result_data = []
+
+        with open(filename, 'w') as f:
+            csvfile = csv.writer(f)
+            csvfile.writerow(query_result_header)
+            csvfile.writerows(query_result_data)
