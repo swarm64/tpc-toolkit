@@ -15,13 +15,6 @@ class CorrectnessCheck:
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
 
-    def get_queries_results(self):
-        for stream in self.query_results:
-            for stream_id, timings in stream.items():
-                for query_id, timing in timings.items():
-                    if timing.status.name == 'OK':
-                        yield stream_id, query_id
-
     @staticmethod
     def make_equal_types(first_df, second_df):
         for col in first_df:
@@ -35,7 +28,7 @@ class CorrectnessCheck:
     @staticmethod
     def has_differences(first_df, second_df):
 
-        if first_df is None or second_df is None:
+        if first_df.empty != second_df.empty:
             return True
 
         first_df = CorrectnessCheck.make_equal_types(second_df, first_df)
@@ -53,7 +46,7 @@ class CorrectnessCheck:
 
         LOG.debug(f'Checking Stream={stream_id}, Query={query_number}')
         filepath = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
-        benchmark_result = correctness_result = None
+        benchmark_result = correctness_result = pd.DataFrame(columns=['col'])
 
         try:
             benchmark_result = pd.read_csv(filepath)
