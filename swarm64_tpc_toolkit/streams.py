@@ -76,12 +76,13 @@ class Streams:
         return df
 
     def add_correctness(self, results_dataframe):
-        cc = CorrectnessCheck(self.scale_factor, self.benchmark)
-        for query_number in results_dataframe.index:
-            for stream_id in range(1, self.num_streams+1):
-                if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
-                    results_dataframe.at[query_number, f'Stream {stream_id:02} status'] =\
-                        cc.check_correctness(stream_id, query_number)
+        if self.scale_factor:
+            cc = CorrectnessCheck(self.scale_factor, self.benchmark)
+            for query_number in results_dataframe.index:
+                for stream_id in range(1, self.num_streams+1):
+                    if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
+                        results_dataframe.at[query_number, f'Stream {stream_id:02} status'] =\
+                            cc.check_correctness(stream_id, query_number)
 
         return results_dataframe
 

@@ -67,7 +67,7 @@ if __name__ == '__main__':
         'Additionally, each query output will be stored in the query_results folder.'
     ))
 
-    args_to_parse.add_argument('--scale-factor', choices=(10, 100, 300, 1000), type=int,
+    args_to_parse.add_argument('--scale-factor', choices=(10, 100, 300, 1000), type=int, default=None,
                                required='--check-correctness' in sys.argv, help=(
         'Scale Factor of correctness result to compare with the query output.'
     ))
