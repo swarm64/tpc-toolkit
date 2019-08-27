@@ -56,8 +56,8 @@ class Streams:
     def sort_df(df):
         return df.reindex(index=natsorted(df.index))
 
-    @staticmethod
-    def save_to_dataframe(results):
+    #@staticmethod
+    def save_to_dataframe(self, results):
         df = pandas.DataFrame()
 
         for column in results:
@@ -102,7 +102,7 @@ class Streams:
             self.db.apply_config(self.config.get('dbconfig', {}))
 
             results = self.run_streams()
-            results_df = Streams.save_to_dataframe(results)
+            results_df = self.save_to_dataframe(results)
             results_with_correctness = self.add_correctness(results_df)
             self._print_results(results_with_correctness)
 
