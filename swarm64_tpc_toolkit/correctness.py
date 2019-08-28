@@ -9,7 +9,8 @@ class CorrectnessCheck:
     def __init__(self, scale_factor, benchmark):
         self.scale_factor = scale_factor
         self.query_output_folder = 'query_results'
-        self.correctness_results_folder = os.path.join('correctness_results', benchmark, f'sf{self.scale_factor}')
+        self.correctness_results_folder = os.path.join('correctness_results',
+                                                       benchmark, f'sf{self.scale_factor}')
 
     def get_correctness_filepath(self, query_id):
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
@@ -39,8 +40,8 @@ class CorrectnessCheck:
 
         if diff_rows_count > 0:
             return True
-        else:
-            return False
+
+        return False
 
     def check_correctness(self, stream_id, query_number):
 
@@ -49,16 +50,19 @@ class CorrectnessCheck:
         benchmark_result = correctness_result = pd.DataFrame(columns=['col'])
 
         try:
-            benchmark_result = pd.read_csv(filepath)
+            benchmark_result = pd.read_csv(filepath, float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
 
         try:
-            correctness_result = pd.read_csv(self.get_correctness_filepath(query_number))
+            correctness_result = pd.read_csv(self.get_correctness_filepath(query_number),
+                                             float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
         except FileNotFoundError:
             LOG.debug(f'File not found!')
 
-        return 'MisMatch' if CorrectnessCheck.has_differences(benchmark_result, correctness_result) else 'OK'
+        if CorrectnessCheck.has_differences(benchmark_result, correctness_result):
+            return 'Mismatch'
 
+        return 'OK'
