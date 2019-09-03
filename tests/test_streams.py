@@ -17,6 +17,7 @@ def args():
         stream_offset = 1
         output = 'csv'
         csv_file = 'results.csv'
+        scale_factor = None
 
     return DefaultArgs
 
@@ -144,6 +145,7 @@ def test_run_stream(mocker, args):
 def test_run(mocker, args):
     s = streams.Streams(args)
     mocker.patch.object(s, '_print_results', autospec=True)
+    mocker.patch.object(s, 'save_to_dataframe', autospec=True)
     db_mock = mocker.patch.object(s, 'db', autospec=True)
     run_streams_mock = mocker.patch.object(s, 'run_streams')
     s.run()

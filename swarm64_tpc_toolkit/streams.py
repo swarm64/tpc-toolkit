@@ -1,6 +1,7 @@
 
 import logging
 import os
+import csv
 
 from multiprocessing import Pool
 from natsort import natsorted
@@ -9,6 +10,7 @@ import pandas
 import yaml
 
 from .db import DB
+from .correctness import CorrectnessCheck
 
 
 LOG = logging.getLogger()
@@ -21,9 +23,11 @@ class Streams:
         self.num_streams = args.streams
         self.netdata_url = args.netdata_url
         self.query_dir = os.path.join('queries', args.benchmark)
+        self.benchmark = args.benchmark
         self.stream_offset = args.stream_offset
         self.output = args.output
         self.csv_file = args.csv_file
+        self.scale_factor = args.scale_factor
 
     @staticmethod
     def _make_config(args):
@@ -52,7 +56,8 @@ class Streams:
     def sort_df(df):
         return df.reindex(index=natsorted(df.index))
 
-    def _print_results(self, results):
+    #@staticmethod
+    def save_to_dataframe(self, results):
         df = pandas.DataFrame()
 
         for column in results:
@@ -68,13 +73,26 @@ class Streams:
 
         df.index = _df.index
         df.index.name = 'Query'
+        return df
 
+    def add_correctness(self, results_dataframe):
+        if self.scale_factor:
+            cc = CorrectnessCheck(self.scale_factor, self.benchmark)
+            for query_number in results_dataframe.index:
+                for stream_id in range(1, self.num_streams+1):
+                    if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
+                        results_dataframe.at[query_number, f'Stream {stream_id:02} status'] =\
+                            cc.check_correctness(stream_id, query_number)
+
+        return results_dataframe
+
+    def _print_results(self, results):
         if 'print' in self.output:
             with pandas.option_context('display.max_rows', None, 'display.max_columns', None):
-                print(df)
+                print(results)
         if 'csv' in self.output:
             if self.csv_file:
-                df.to_csv(self.csv_file, sep=';')
+                results.to_csv(self.csv_file, sep=';')
         if not self.output:
             raise ValueError(f'No output format was defined.')
 
@@ -84,7 +102,9 @@ class Streams:
             self.db.apply_config(self.config.get('dbconfig', {}))
 
             results = self.run_streams()
-            self._print_results(results)
+            results_df = self.save_to_dataframe(results)
+            results_with_correctness = self.add_correctness(results_df)
+            self._print_results(results_with_correctness)
 
         except KeyboardInterrupt:
             # Reset all the stuff
@@ -126,7 +146,10 @@ class Streams:
             query_sql = Streams.apply_sql_modifications(query_sql, (('revenue0', f'revenue{stream_id}'),))
 
             LOG.info(f'running  {pretext}.')
-            timing = self.db.run_query(query_sql, self.config.get('timeout', 0))
+            timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0))
+
+            if self.scale_factor:
+                Streams._save_query_output(stream_id, query_id, query_result)
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
@@ -134,3 +157,21 @@ class Streams:
             timings[query_id] = timing
 
         return {stream_id: timings}
+
+    @staticmethod
+    def _save_query_output(stream_id, query_id, query_result):
+
+        filename = f'query_results/{stream_id}_{query_id}.csv'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        if query_result is not None:
+            query_result_header = query_result[0]
+            query_result_data = query_result[1]
+        else:
+            query_result_header = []
+            query_result_data = []
+
+        with open(filename, 'w') as f:
+            csvfile = csv.writer(f)
+            csvfile.writerow(query_result_header)
+            csvfile.writerows(query_result_data)

@@ -40,19 +40,27 @@ class DB:
 
     def run_query(self, sql, timeout):
         status = Status.ERROR
+        query_result = None
         with DBConn(self.dsn, statement_timeout=timeout) as conn:
             try:
                 start = time.time()
                 conn.cursor.execute(sql)
+                if conn.cursor.description is not None:
+                    query_result_columns = [colname[0] for colname in conn.cursor.description]
+                    query_result = query_result_columns, conn.cursor.fetchall()
+                else:
+                    query_result = None
                 status = Status.OK
 
             except psycopg2.extensions.QueryCanceledError:
                 status = Status.TIMEOUT
+                query_result = None
 
             except (psycopg2.InternalError, psycopg2.Error):
                 LOG.exception('Ignoring psycopg2 Error')
+                query_result = None
 
             finally:
                 stop = time.time()
 
-            return Timing(start=start, stop=stop, status=status)
+            return Timing(start=start, stop=stop, status=status), query_result
