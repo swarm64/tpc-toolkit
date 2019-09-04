@@ -167,6 +167,9 @@ class Streams:
         if query_result is not None:
             query_result_header = query_result[0]
             query_result_data = query_result[1]
+
+            if not query_result_data:
+                query_result_header = []
         else:
             query_result_header = []
             query_result_data = []
