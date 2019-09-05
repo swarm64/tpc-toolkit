@@ -1,5 +1,6 @@
 
 import logging
+import pprint
 import time
 
 from collections import namedtuple
@@ -25,6 +26,7 @@ class DB:
         self.dsn = dsn
         dsn_url = urlparse(dsn)
         self.dsn_pg_db = f'{dsn_url.scheme}://{dsn_url.netloc}/postgres'
+        self.plan = ''
 
     def apply_config(self, config):
         with DBConn(self.dsn_pg_db) as conn:
@@ -51,6 +53,7 @@ class DB:
                 else:
                     query_result = None
                 status = Status.OK
+                self.plan = pprint.pformat(conn.notices)
 
             except psycopg2.extensions.QueryCanceledError:
                 status = Status.TIMEOUT
