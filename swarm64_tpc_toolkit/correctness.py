@@ -17,22 +17,10 @@ class CorrectnessCheck:
         return filepath
 
     @staticmethod
-    def make_equal_types(first_df, second_df):
-        for col in first_df:
-            if first_df[col].dtype == 'object':
-                second_df[col] = second_df[col].astype(str)
-            else:
-                second_df[col] = second_df[col].astype(first_df[col].dtype)
-
-        return second_df
-
-    @staticmethod
     def has_differences(first_df, second_df):
 
         if first_df.empty != second_df.empty:
             return True
-
-        first_df = CorrectnessCheck.make_equal_types(second_df, first_df)
 
         diff = first_df.merge(second_df, indicator='merge', how='outer')
         diff = diff[diff['merge'] != 'both'].drop('merge', axis=1)
