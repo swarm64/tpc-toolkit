@@ -164,9 +164,10 @@ class Streams:
         filename = f'query_results/{stream_id}_{query_id}.csv'
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        if query_result is not None:
+        if query_result is not None and query_result[1]:
             query_result_header = query_result[0]
             query_result_data = query_result[1]
+
         else:
             query_result_header = []
             query_result_data = []
