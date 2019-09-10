@@ -185,6 +185,6 @@ class Streams:
         filename = os.path.join(self.explain_analyze_dir, f'{stream_id}_{query_id}.txt')
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        if self.explain_analyze and plan:
+        if self.explain_analyze:
             with open(filename, 'w') as f:
                 f.write(plan)
