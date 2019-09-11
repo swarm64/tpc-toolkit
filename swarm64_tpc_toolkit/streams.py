@@ -150,7 +150,7 @@ class Streams:
             query_sql = Streams.apply_sql_modifications(query_sql, (('revenue0', f'revenue{stream_id}'),))
 
             LOG.info(f'running  {pretext}.')
-            timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0))
+            timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0), self.explain_analyze)
             self._save_explain_plan(stream_id, query_id, self.db.plan)
 
             if self.scale_factor:
