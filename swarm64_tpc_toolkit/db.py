@@ -57,7 +57,7 @@ class DB:
                 else:
                     query_result = None
                 status = Status.OK
-                self.plan = pprint.pformat(conn.notices)
+                self.plan = pprint.pformat(conn.conn.notices)
 
             except psycopg2.extensions.QueryCanceledError:
                 status = Status.TIMEOUT
