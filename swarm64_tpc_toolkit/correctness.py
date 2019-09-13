@@ -34,21 +34,28 @@ class CorrectnessCheck:
     def check_correctness(self, stream_id, query_number):
 
         LOG.debug(f'Checking Stream={stream_id}, Query={query_number}')
-        filepath = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
-        benchmark_result = correctness_result = pd.DataFrame(columns=['col'])
+        correctness_path = self.get_correctness_filepath(query_number)
+        benchmark_path = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
 
+        # Reading Correctness results
         try:
-            benchmark_result = pd.read_csv(filepath, float_precision='round_trip')
-        except pd.errors.EmptyDataError:
-            LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
-
-        try:
-            correctness_result = pd.read_csv(self.get_correctness_filepath(query_number),
-                                             float_precision='round_trip')
+            correctness_result = pd.read_csv(correctness_path, float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
+            correctness_result = pd.DataFrame(columns=['col'])
         except FileNotFoundError:
-            LOG.debug(f'File not found!')
+            LOG.debug(f'Correctness results for {query_number} not found. Skipping correctness checking.')
+            return 'OK'
+
+        # Reading Benchmark results
+        try:
+            benchmark_result = pd.read_csv(benchmark_path, float_precision='round_trip')
+        except pd.errors.EmptyDataError:
+            LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
+            benchmark_result = pd.DataFrame(columns=['col'])
+        except FileNotFoundError:
+            LOG.debug(f'Query results for {stream_id}-{query_number} not found. Reporting as mismatch.')
+            return 'Mismatch'
 
         if CorrectnessCheck.has_differences(benchmark_result, correctness_result):
             return 'Mismatch'
