@@ -1,6 +1,5 @@
 
 import logging
-import pprint
 import time
 
 from collections import namedtuple
@@ -57,7 +56,7 @@ class DB:
                 else:
                     query_result = None
                 status = Status.OK
-                self.plan = pprint.pformat(conn.conn.notices)
+                self.plan = '\n'.join(conn.conn.notices)
 
             except psycopg2.extensions.QueryCanceledError:
                 status = Status.TIMEOUT
@@ -78,6 +77,7 @@ class DB:
             'auto_explain.log_min_duration': 500,
             'auto_explain.log_analyze': 'on',
             'auto_explain.log_buffers': 'on',
+            'auto_explain.log_format': 'json',
             'client_min_messages': 'LOG'
         }
 
