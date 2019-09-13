@@ -72,5 +72,9 @@ if __name__ == '__main__':
         'Scale Factor of correctness result to compare with the query output.'
     ))
 
+    args_to_parse.add_argument('--explain-analyze', action='store_true', default=False, help=(
+        'Whether to run EXPLAIN ANALYZE. Will save plans into the "plan" directory.'
+    ))
+
     args = args_to_parse.parse_args()
     Streams(args).run()
