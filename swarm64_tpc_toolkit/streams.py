@@ -151,7 +151,9 @@ class Streams:
 
             LOG.info(f'running  {pretext}.')
             timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0), self.explain_analyze)
-            self._save_explain_plan(stream_id, query_id, self.db.plan)
+
+            if self.explain_analyze:
+                self._save_explain_plan(stream_id, query_id, self.db.plan)
 
             if self.scale_factor:
                 Streams._save_query_output(stream_id, query_id, query_result)
@@ -185,6 +187,5 @@ class Streams:
         filename = os.path.join(self.explain_analyze_dir, f'{stream_id}_{query_id}.txt')
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        if self.explain_analyze:
-            with open(filename, 'w') as f:
-                f.write(plan)
+        with open(filename, 'w') as f:
+            f.write(plan)
