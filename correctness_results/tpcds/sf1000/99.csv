@@ -1,0 +1,101 @@
+30 days,31-60,61-90,91-120,>120 days,cc_name,sm_type,substr
+40247,34137,28231,0,0,California,EXPRESS,About slight way
+40539,34007,27904,0,0,California_1,EXPRESS,About slight way
+39536,34121,28241,0,0,California_2,EXPRESS,About slight way
+39850,34030,28018,0,0,Hawaii/Alaska,EXPRESS,About slight way
+39908,33980,27790,0,0,Hawaii/Alaska_1,EXPRESS,About slight way
+40052,34056,27752,0,0,Hawaii/Alaska_2,EXPRESS,About slight way
+40268,34403,28069,0,0,Mid Atlantic,EXPRESS,About slight way
+40183,34201,28004,0,0,Mid Atlantic_1,EXPRESS,About slight way
+39972,34251,27899,0,0,Mid Atlantic_2,EXPRESS,About slight way
+39949,34258,27612,0,0,Mid Atlantic_3,EXPRESS,About slight way
+39883,34120,28057,0,0,North Midwest,EXPRESS,About slight way
+40399,34194,28139,0,0,North Midwest_1,EXPRESS,About slight way
+39993,34348,27905,0,0,North Midwest_2,EXPRESS,About slight way
+40293,34074,28202,0,0,North Midwest_3,EXPRESS,About slight way
+40154,34154,28062,0,0,NY Metro,EXPRESS,About slight way
+40212,34249,27779,0,0,NY Metro_1,EXPRESS,About slight way
+40361,34033,28044,0,0,NY Metro_2,EXPRESS,About slight way
+40382,34233,27756,0,0,NY Metro_3,EXPRESS,About slight way
+40457,34332,27850,0,0,Pacific Northwest,EXPRESS,About slight way
+40128,34034,27966,0,0,Pacific Northwest_1,EXPRESS,About slight way
+39998,34053,27535,0,0,Pacific Northwest_2,EXPRESS,About slight way
+30257,25545,20936,0,0,California,LIBRARY,About slight way
+29989,25579,21243,0,0,California_1,LIBRARY,About slight way
+30308,25500,21056,0,0,California_2,LIBRARY,About slight way
+29817,25713,21097,0,0,Hawaii/Alaska,LIBRARY,About slight way
+29992,25452,20999,0,0,Hawaii/Alaska_1,LIBRARY,About slight way
+29975,25723,20817,0,0,Hawaii/Alaska_2,LIBRARY,About slight way
+30093,25424,21084,0,0,Mid Atlantic,LIBRARY,About slight way
+30423,25667,21095,0,0,Mid Atlantic_1,LIBRARY,About slight way
+30088,26005,20637,0,0,Mid Atlantic_2,LIBRARY,About slight way
+30041,25607,20993,0,0,Mid Atlantic_3,LIBRARY,About slight way
+30147,25634,20835,0,0,North Midwest,LIBRARY,About slight way
+30343,25430,21009,0,0,North Midwest_1,LIBRARY,About slight way
+29861,25578,20785,0,0,North Midwest_2,LIBRARY,About slight way
+29603,25355,21092,0,0,North Midwest_3,LIBRARY,About slight way
+29996,25788,21144,0,0,NY Metro,LIBRARY,About slight way
+30060,25362,20775,0,0,NY Metro_1,LIBRARY,About slight way
+29987,25564,21072,0,0,NY Metro_2,LIBRARY,About slight way
+30429,25568,20845,0,0,NY Metro_3,LIBRARY,About slight way
+30090,25629,20935,0,0,Pacific Northwest,LIBRARY,About slight way
+30138,25882,21041,0,0,Pacific Northwest_1,LIBRARY,About slight way
+30336,25462,21236,0,0,Pacific Northwest_2,LIBRARY,About slight way
+40005,34205,27993,0,0,California,NEXT DAY,About slight way
+40236,33894,27968,0,0,California_1,NEXT DAY,About slight way
+40055,34063,27894,0,0,California_2,NEXT DAY,About slight way
+40356,34238,28144,0,0,Hawaii/Alaska,NEXT DAY,About slight way
+40291,33951,28109,0,0,Hawaii/Alaska_1,NEXT DAY,About slight way
+39957,33955,27953,0,0,Hawaii/Alaska_2,NEXT DAY,About slight way
+39909,34413,28179,0,0,Mid Atlantic,NEXT DAY,About slight way
+39989,34091,28064,0,0,Mid Atlantic_1,NEXT DAY,About slight way
+39972,34254,27880,0,0,Mid Atlantic_2,NEXT DAY,About slight way
+40118,34108,27952,0,0,Mid Atlantic_3,NEXT DAY,About slight way
+40315,34139,28144,0,0,North Midwest,NEXT DAY,About slight way
+39978,34128,27920,0,0,North Midwest_1,NEXT DAY,About slight way
+40075,34034,27796,0,0,North Midwest_2,NEXT DAY,About slight way
+39877,33891,28011,0,0,North Midwest_3,NEXT DAY,About slight way
+40238,34531,28008,0,0,NY Metro,NEXT DAY,About slight way
+39907,34044,28186,0,0,NY Metro_1,NEXT DAY,About slight way
+40613,34393,27940,0,0,NY Metro_2,NEXT DAY,About slight way
+40514,34539,28301,0,0,NY Metro_3,NEXT DAY,About slight way
+40108,34506,28164,0,0,Pacific Northwest,NEXT DAY,About slight way
+40094,33699,27896,0,0,Pacific Northwest_1,NEXT DAY,About slight way
+40195,34308,27772,0,0,Pacific Northwest_2,NEXT DAY,About slight way
+30215,25927,21036,0,0,California,OVERNIGHT,About slight way
+30086,25356,20982,0,0,California_1,OVERNIGHT,About slight way
+29942,25413,21384,0,0,California_2,OVERNIGHT,About slight way
+30012,25576,20891,0,0,Hawaii/Alaska,OVERNIGHT,About slight way
+29858,25594,20835,0,0,Hawaii/Alaska_1,OVERNIGHT,About slight way
+29974,25729,21197,0,0,Hawaii/Alaska_2,OVERNIGHT,About slight way
+30028,25804,20989,0,0,Mid Atlantic,OVERNIGHT,About slight way
+30024,25924,21007,0,0,Mid Atlantic_1,OVERNIGHT,About slight way
+30157,25977,21084,0,0,Mid Atlantic_2,OVERNIGHT,About slight way
+29989,25810,20879,0,0,Mid Atlantic_3,OVERNIGHT,About slight way
+30382,25723,20899,0,0,North Midwest,OVERNIGHT,About slight way
+30178,25691,21010,0,0,North Midwest_1,OVERNIGHT,About slight way
+30099,25469,21135,0,0,North Midwest_2,OVERNIGHT,About slight way
+30065,25602,20948,0,0,North Midwest_3,OVERNIGHT,About slight way
+30133,25849,20953,0,0,NY Metro,OVERNIGHT,About slight way
+30014,25487,21069,0,0,NY Metro_1,OVERNIGHT,About slight way
+30310,25736,21058,0,0,NY Metro_2,OVERNIGHT,About slight way
+30322,25679,20896,0,0,NY Metro_3,OVERNIGHT,About slight way
+29963,25943,20941,0,0,Pacific Northwest,OVERNIGHT,About slight way
+29972,25462,20992,0,0,Pacific Northwest_1,OVERNIGHT,About slight way
+29862,25542,20897,0,0,Pacific Northwest_2,OVERNIGHT,About slight way
+30137,25762,20944,0,0,California,REGULAR,About slight way
+30148,25658,20995,0,0,California_1,REGULAR,About slight way
+30252,25485,20927,0,0,California_2,REGULAR,About slight way
+30139,25562,21177,0,0,Hawaii/Alaska,REGULAR,About slight way
+29772,25353,20979,0,0,Hawaii/Alaska_1,REGULAR,About slight way
+29753,25360,21180,0,0,Hawaii/Alaska_2,REGULAR,About slight way
+29992,25579,21244,0,0,Mid Atlantic,REGULAR,About slight way
+29959,25297,20785,0,0,Mid Atlantic_1,REGULAR,About slight way
+30169,25490,21043,0,0,Mid Atlantic_2,REGULAR,About slight way
+29841,25487,20651,0,0,Mid Atlantic_3,REGULAR,About slight way
+30132,25666,20996,0,0,North Midwest,REGULAR,About slight way
+30157,25634,20770,0,0,North Midwest_1,REGULAR,About slight way
+30269,25859,21086,0,0,North Midwest_2,REGULAR,About slight way
+30111,25647,20962,0,0,North Midwest_3,REGULAR,About slight way
+30239,25661,21013,0,0,NY Metro,REGULAR,About slight way
+30242,25613,20694,0,0,NY Metro_1,REGULAR,About slight way

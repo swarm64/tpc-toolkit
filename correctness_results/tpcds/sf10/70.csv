@@ -1,0 +1,8 @@
+lochierarchy,rank_within_parent,s_county,s_state,total_sum
+2,1,,,-4348021717.04
+1,1,,SD,-1108074543.77
+1,2,,TN,-1534645305.17
+1,3,,AL,-1705301868.1
+0,1,Walker County,AL,-1705301868.1
+0,1,Ziebach County,SD,-1108074543.77
+0,1,Williamson County,TN,-1534645305.17
