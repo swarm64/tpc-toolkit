@@ -1,6 +1,9 @@
 import logging
+import numpy
 import os
 import pandas as pd
+
+from pandas.io.formats.style import Styler
 
 LOG = logging.getLogger()
 
@@ -12,19 +15,23 @@ class CorrectnessCheck:
         self.correctness_results_folder = os.path.join('correctness_results',
                                                        benchmark, f'sf{self.scale_factor}')
 
+        self.html = ''
+        self.diff = None
+
     def get_correctness_filepath(self, query_id):
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
 
-    @staticmethod
-    def has_differences(first_df, second_df):
+    def has_differences(self, first_df, second_df):
 
         if first_df.empty != second_df.empty:
             return True
 
-        diff = first_df.merge(second_df, indicator='merge', how='outer')
-        diff = diff[diff['merge'] != 'both'].drop('merge', axis=1)
-        diff_rows_count = diff.shape[0]
+        diff = first_df.merge(second_df, indicator='source', how='outer')
+        self.diff = diff[diff['source'] != 'both']
+        self.diff['source'] = self.diff['source'].apply(
+            lambda x: 'benchmark results' if x == 'left_only' else 'correctness results')
+        diff_rows_count = self.diff.shape[0]
 
         if diff_rows_count > 0:
             return True
@@ -54,10 +61,32 @@ class CorrectnessCheck:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
             benchmark_result = pd.DataFrame(columns=['col'])
         except FileNotFoundError:
-            LOG.debug(f'Query results for {stream_id}-{query_number} not found. Reporting as mismatch.')
+            msg = f'Query results for {stream_id}-{query_number} not found. Reporting as mismatch.'
+            LOG.debug(msg)
+            self.html += f'<p>{msg}</p>'
             return 'Mismatch'
 
-        if CorrectnessCheck.has_differences(benchmark_result, correctness_result):
+        if self.has_differences(benchmark_result, correctness_result):
+            self.html += CorrectnessCheck.to_html(self.diff,
+                                                  table_title=f'Mismatch in StreamId={stream_id}, Query={query_number}')
             return 'Mismatch'
 
         return 'OK'
+
+    @staticmethod
+    def to_html(df, table_title):
+
+        def highlight_difference(data, color='yellow'):
+            attr = 'background-color: {}'.format(color)
+            d1 = data[data['source'] == 'benchmark results']
+            d2 = data[data['source'] == 'correctness results']
+            is_equal = d1.values == d2.values
+            res1 = pd.DataFrame(numpy.where(is_equal, '', attr), index=d1.index, columns=d1.columns)
+            res2 = pd.DataFrame(numpy.where(is_equal, '', attr), index=d2.index, columns=d2.columns)
+            res = pd.concat([res1, res2])
+            res['source'] = res['source'].apply(lambda x: '')
+            return res
+
+        Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
+
+        return Swarm64Styler(df).apply(highlight_difference, axis=None).render(table_title=table_title)

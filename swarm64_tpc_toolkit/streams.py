@@ -4,8 +4,10 @@ import os
 import csv
 import time
 
+from datetime import datetime
 from multiprocessing import Pool
 from natsort import natsorted
+from pandas.io.formats.style import Styler
 
 import pandas
 import yaml
@@ -32,6 +34,7 @@ class Streams:
 
         self.explain_analyze = args.explain_analyze
         self.explain_analyze_dir = os.path.join('.', f'plans_{int(time.time())}')
+        self.html_output = 'report.html'
 
     @staticmethod
     def _make_config(args):
@@ -60,7 +63,6 @@ class Streams:
     def sort_df(df):
         return df.reindex(index=natsorted(df.index))
 
-    #@staticmethod
     def save_to_dataframe(self, results):
         df = pandas.DataFrame()
 
@@ -87,6 +89,9 @@ class Streams:
                     if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
                         results_dataframe.at[query_number, f'Stream {stream_id:02} status'] =\
                             cc.check_correctness(stream_id, query_number)
+
+            # Save results to html if correctness check is on
+            self.save_results_to_html(results_dataframe, cc.html)
 
         return results_dataframe
 
@@ -190,3 +195,16 @@ class Streams:
 
         with open(filename, 'w') as f:
             f.write(plan)
+
+    def save_results_to_html(self, results, correctness_html=None):
+
+        html = f'<h1> Swarm64 Benchmark Results Report </h1><p>{datetime.now().strftime("%d-%m-%Y %H:%M:%S")}</p>'
+
+        Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
+        html += Swarm64Styler(results).render()
+
+        if correctness_html:
+            html += correctness_html
+
+        with open(self.html_output, 'w') as f:
+            f.write(html)
