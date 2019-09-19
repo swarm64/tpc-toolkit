@@ -56,7 +56,6 @@ class DB:
                 else:
                     query_result = None
                 status = Status.OK
-                self.plan = '\n'.join(conn.conn.notices)
 
             except psycopg2.extensions.QueryCanceledError:
                 status = Status.TIMEOUT
@@ -68,6 +67,7 @@ class DB:
 
             finally:
                 stop = time.time()
+                self.plan = '\n'.join(conn.conn.notices)
 
             return Timing(start=start, stop=stop, status=status), query_result
 
