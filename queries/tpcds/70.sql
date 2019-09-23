@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select
     sum(ss_net_profit) as total_sum
    ,s_state

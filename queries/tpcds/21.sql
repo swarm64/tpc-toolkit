@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  *
  from(select w_warehouse_name
             ,i_item_id

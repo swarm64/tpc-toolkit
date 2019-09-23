@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  channel, item, return_ratio, return_rank, currency_rank from
  (select
  'web' as channel

@@ -2,7 +2,7 @@
 
 SET work_mem = '4GB';
 
-
+-- EXPLAIN (FORMAT JSON)
 with year_total as (
  select c_customer_id customer_id
        ,c_first_name customer_first_name

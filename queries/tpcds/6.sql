@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  a.ca_state state, count(*) cnt
  from customer_address a
      ,customer c

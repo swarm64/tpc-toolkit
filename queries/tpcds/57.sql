@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 with v1 as(
  select i_category, i_brand,
         cc_name,

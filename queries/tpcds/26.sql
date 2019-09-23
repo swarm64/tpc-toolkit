@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  i_item_id,
         avg(cs_quantity) agg1,
         avg(cs_list_price) agg2,

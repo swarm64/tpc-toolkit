@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 with my_customers as (
  select distinct c_customer_sk
         , c_current_addr_sk

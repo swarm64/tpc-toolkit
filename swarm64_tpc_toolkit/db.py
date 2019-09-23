@@ -1,5 +1,6 @@
 
 import logging
+import pprint
 import time
 
 from collections import namedtuple
@@ -61,10 +62,12 @@ class DB:
             except psycopg2.extensions.QueryCanceledError:
                 status = Status.TIMEOUT
                 query_result = None
+                self.plan = DB.get_explain_output(conn.conn, sql)
 
             except (psycopg2.InternalError, psycopg2.Error):
                 LOG.exception('Ignoring psycopg2 Error')
                 query_result = None
+                self.plan = DB.get_explain_output(conn.conn, sql)
 
             finally:
                 stop = time.time()
@@ -85,3 +88,10 @@ class DB:
 
         for key, value in auto_explain_config.items():
             conn.cursor.execute(f'SET {key} = $${value}$$')
+
+    @staticmethod
+    def get_explain_output(connection, sql):
+        with connection.cursor() as explain_plan_cursor:
+            explain_plan_cursor.execute(sql.replace('-- EXPLAIN (FORMAT JSON)', 'EXPLAIN (FORMAT JSON)'))
+            return pprint.pformat(str(explain_plan_cursor.fetchone()[0]))
+
