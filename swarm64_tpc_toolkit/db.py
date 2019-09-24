@@ -91,7 +91,11 @@ class DB:
 
     @staticmethod
     def get_explain_output(connection, sql):
-        with connection.cursor() as explain_plan_cursor:
-            explain_plan_cursor.execute(sql.replace('-- EXPLAIN (FORMAT JSON)', 'EXPLAIN (FORMAT JSON)'))
-            return pprint.pformat(str(explain_plan_cursor.fetchone()[0]))
+        try:
 
+            with connection.cursor() as explain_plan_cursor:
+                explain_plan_cursor.execute(sql.replace('-- EXPLAIN (FORMAT JSON)', 'EXPLAIN (FORMAT JSON)'))
+                return pprint.pformat(str(explain_plan_cursor.fetchone()[0]))
+
+        except psycopg2.Error as e:
+            return f'Explain Output failed: {str(e)}'
