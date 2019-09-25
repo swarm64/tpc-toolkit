@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 with ss as
  (select s_store_sk,
          sum(ss_ext_sales_price) as sales,

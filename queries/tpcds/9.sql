@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select case when (select count(*)
                   from store_sales
                   where ss_quantity between 1 and 20) > 44666436

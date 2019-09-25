@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select
    w_state
   ,i_item_id

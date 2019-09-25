@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 with ssales as
 (select c_last_name
       ,c_first_name

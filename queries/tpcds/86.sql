@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select
     sum(ws_net_paid) as total_sum
    ,i_category

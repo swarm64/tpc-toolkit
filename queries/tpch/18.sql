@@ -1,5 +1,6 @@
 set work_mem = '1GB';
 
+-- EXPLAIN (FORMAT JSON)
 select
     c_name,
     c_custkey,

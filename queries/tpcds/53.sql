@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  * from
 (select i_manufact_id,
 sum(ss_sales_price) sum_sales,

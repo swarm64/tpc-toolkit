@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  distinct(i_product_name)
  from item i1
  where i_manufact_id between 774 and 774+40
