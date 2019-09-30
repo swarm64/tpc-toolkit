@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  ca_zip
        ,sum(cs_sales_price)
  from catalog_sales

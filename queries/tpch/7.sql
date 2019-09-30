@@ -1,6 +1,6 @@
 -- using 1512813808 as a seed to the RNG
 
-
+-- EXPLAIN (FORMAT JSON)
 select
     supp_nation,
     cust_nation,

@@ -1,6 +1,7 @@
 set work_mem = '1GB';
 set max_parallel_workers = 3;
 
+-- EXPLAIN (FORMAT JSON)
 select
     s_name,
     count(*) as numwait
