@@ -84,6 +84,8 @@ class Streams:
     def add_correctness(self, results_dataframe):
         if self.scale_factor:
             stream_ids = range(self.stream_offset, self.num_streams + self.stream_offset)
+            if self.num_streams == 0:
+                stream_ids = [0]
             cc = CorrectnessCheck(self.scale_factor, self.benchmark)
             for query_number in results_dataframe.index:
                 for stream_id in stream_ids:
