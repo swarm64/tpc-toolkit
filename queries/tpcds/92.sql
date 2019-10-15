@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select
    sum(ws_ext_discount_amt)  as "Excess Discount Amount"
 from

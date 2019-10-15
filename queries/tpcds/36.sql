@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select
     sum(ss_net_profit)/sum(ss_ext_sales_price) as gross_margin
    ,i_category

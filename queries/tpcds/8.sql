@@ -1,6 +1,6 @@
 -- RNGSEED: 1
 
-
+-- EXPLAIN (FORMAT JSON)
 select  s_store_name
       ,sum(ss_net_profit)
  from store_sales

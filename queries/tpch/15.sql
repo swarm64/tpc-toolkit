@@ -12,7 +12,7 @@ create view revenue0 (supplier_no, total_revenue) as
     group by
         l_suppkey;
 
-
+-- EXPLAIN (FORMAT JSON)
 select
     s_suppkey,
     s_name,

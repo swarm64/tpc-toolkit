@@ -1,13 +1,19 @@
 
 import logging
 import os
+import csv
+import time
 
+from datetime import datetime
 from multiprocessing import Pool
+from natsort import natsorted
+from pandas.io.formats.style import Styler
 
 import pandas
 import yaml
 
 from .db import DB
+from .correctness import CorrectnessCheck
 
 
 LOG = logging.getLogger()
@@ -20,8 +26,15 @@ class Streams:
         self.num_streams = args.streams
         self.netdata_url = args.netdata_url
         self.query_dir = os.path.join('queries', args.benchmark)
+        self.benchmark = args.benchmark
         self.stream_offset = args.stream_offset
         self.output = args.output
+        self.csv_file = args.csv_file
+        self.scale_factor = args.scale_factor
+
+        self.explain_analyze = args.explain_analyze
+        self.explain_analyze_dir = os.path.join('.', f'plans_{int(time.time())}')
+        self.html_output = 'report.html'
 
     @staticmethod
     def _make_config(args):
@@ -46,7 +59,11 @@ class Streams:
             sql = sql.replace(modification[0], modification[1])
         return sql
 
-    def _print_results(self, results):
+    @staticmethod
+    def sort_df(df):
+        return df.reindex(index=natsorted(df.index))
+
+    def save_to_dataframe(self, results):
         df = pandas.DataFrame()
 
         for column in results:
@@ -54,8 +71,7 @@ class Streams:
             columns = [f'{key} start', f'{key} stop', f'{key} status']
 
             _df = pandas.DataFrame(data=column[key]).transpose()
-            _df.index = _df.index.astype(str)
-            _df.sort_index(inplace=True)
+            _df = Streams.sort_df(_df)
             _df.columns = columns
 
             df[f'Stream {key:02} metric'] = (_df[columns[1]] - _df[columns[0]]).apply(lambda x: round(x, 2))
@@ -63,14 +79,31 @@ class Streams:
 
         df.index = _df.index
         df.index.name = 'Query'
+        return df
 
-        if self.output == 'print':
+    def add_correctness(self, results_dataframe):
+        if self.scale_factor:
+            cc = CorrectnessCheck(self.scale_factor, self.benchmark)
+            for query_number in results_dataframe.index:
+                for stream_id in range(1, self.num_streams+1):
+                    if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
+                        results_dataframe.at[query_number, f'Stream {stream_id:02} status'] =\
+                            cc.check_correctness(stream_id, query_number)
+
+            # Save results to html if correctness check is on
+            self.save_results_to_html(results_dataframe, cc.html)
+
+        return results_dataframe
+
+    def _print_results(self, results):
+        if 'print' in self.output:
             with pandas.option_context('display.max_rows', None, 'display.max_columns', None):
-                print(df)
-        elif self.output == 'csv':
-            print(df.to_csv(sep=';'))
-        else:
-            raise ValueError(f'Unknown output format {self.output}')
+                print(results)
+        if 'csv' in self.output:
+            if self.csv_file:
+                results.to_csv(self.csv_file, sep=';')
+        if not self.output:
+            raise ValueError(f'No output format was defined.')
 
     def run(self):
         try:
@@ -78,7 +111,9 @@ class Streams:
             self.db.apply_config(self.config.get('dbconfig', {}))
 
             results = self.run_streams()
-            self._print_results(results)
+            results_df = self.save_to_dataframe(results)
+            results_with_correctness = self.add_correctness(results_df)
+            self._print_results(results_with_correctness)
 
         except KeyboardInterrupt:
             # Reset all the stuff
@@ -120,7 +155,13 @@ class Streams:
             query_sql = Streams.apply_sql_modifications(query_sql, (('revenue0', f'revenue{stream_id}'),))
 
             LOG.info(f'running  {pretext}.')
-            timing = self.db.run_query(query_sql, self.config.get('timeout', 0))
+            timing, query_result = self.db.run_query(query_sql, self.config.get('timeout', 0), self.explain_analyze)
+
+            if self.explain_analyze:
+                self._save_explain_plan(stream_id, query_id, self.db.plan)
+
+            if self.scale_factor:
+                Streams._save_query_output(stream_id, query_id, query_result)
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
@@ -128,3 +169,42 @@ class Streams:
             timings[query_id] = timing
 
         return {stream_id: timings}
+
+    @staticmethod
+    def _save_query_output(stream_id, query_id, query_result):
+
+        filename = f'query_results/{stream_id}_{query_id}.csv'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        if query_result is not None and query_result[1]:
+            query_result_header = query_result[0]
+            query_result_data = query_result[1]
+
+        else:
+            query_result_header = []
+            query_result_data = []
+
+        with open(filename, 'w') as f:
+            csvfile = csv.writer(f)
+            csvfile.writerow(query_result_header)
+            csvfile.writerows(query_result_data)
+
+    def _save_explain_plan(self, stream_id, query_id, plan):
+        filename = os.path.join(self.explain_analyze_dir, f'{stream_id}_{query_id}.txt')
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(filename, 'w') as f:
+            f.write(plan)
+
+    def save_results_to_html(self, results, correctness_html=None):
+
+        html = f'<h1> Swarm64 Benchmark Results Report </h1><p>{datetime.now().strftime("%d-%m-%Y %H:%M:%S")}</p>'
+
+        Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
+        html += Swarm64Styler(results).render()
+
+        if correctness_html:
+            html += correctness_html
+
+        with open(self.html_output, 'w') as f:
+            f.write(html)

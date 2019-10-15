@@ -52,8 +52,28 @@ if __name__ == '__main__':
         'Which disk to grep statistics for. Only required if netdata-url is present.'
     ))
 
-    args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', help=(
-        'How the results output should look like'
+    args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', nargs='+',
+        help=('How the results output should look like. '
+              'Multiple options possible, separated by space')
+    )
+
+    args_to_parse.add_argument('--csv-file', default='results.csv', help=(
+        'Where to save the csv file, if csv output is selected. '
+        'The default is results.csv in the current directory.'
+    ))
+
+    args_to_parse.add_argument('--check-correctness', action='store_true', default=False, help=(
+        'Flag to check correctness.'
+        'Additionally, each query output will be stored in the query_results folder.'
+    ))
+
+    args_to_parse.add_argument('--scale-factor', choices=(10, 100, 300, 1000), type=int, default=None,
+                               required='--check-correctness' in sys.argv, help=(
+        'Scale Factor of correctness result to compare with the query output.'
+    ))
+
+    args_to_parse.add_argument('--explain-analyze', action='store_true', default=False, help=(
+        'Whether to run EXPLAIN ANALYZE. Will save plans into the "plan" directory.'
     ))
 
     args = args_to_parse.parse_args()
