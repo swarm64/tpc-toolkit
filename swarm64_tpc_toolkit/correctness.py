@@ -77,14 +77,39 @@ class CorrectnessCheck:
     def to_html(df, table_title):
 
         def highlight_difference(data, color='yellow'):
+            """
+
+            :param data: The data frame containing differences
+                            between benchmark and correctness results.
+            :param color: The color to highlight the differences.
+            :return: returns the highlighted data frame style.
+
+            If one of the results has additional rows, then the way to compare them is
+            1) to divide data frames into 2 parts
+            2) compare the part of data frames that have the same row counts,
+               find differences if any and highlight them
+            3) highlight all columns of the data frame that has additional rows
+            """
             attr = 'background-color: {}'.format(color)
-            d1 = data[data['source'] == 'benchmark results']
-            d2 = data[data['source'] == 'correctness results']
-            is_equal = d1.values == d2.values
-            res1 = pd.DataFrame(numpy.where(is_equal, '', attr), index=d1.index, columns=d1.columns)
-            res2 = pd.DataFrame(numpy.where(is_equal, '', attr), index=d2.index, columns=d2.columns)
+            benchmark_data = data[data['source'] == 'benchmark results']
+            correctness_data = data[data['source'] == 'correctness results']
+            benchmark_rowcount, correctness_rowcount = benchmark_data.shape[0], correctness_data.shape[0]
+
+            minrowcount = min(benchmark_rowcount, correctness_rowcount)
+            b1, c1 = benchmark_data.iloc[:minrowcount], correctness_data.iloc[:minrowcount]
+
+            # find additional rows and highlight all of them
+            b2, c2 = benchmark_data.iloc[minrowcount:], correctness_data.iloc[minrowcount:]
+            res2 = pd.concat([b2, c2])
+            # highlight all of them
+            res2.loc[:, :] = attr
+
+            is_equal = b1.values == c1.values
+            res11 = pd.DataFrame(numpy.where(is_equal, '', attr), index=b1.index, columns=b1.columns)
+            res12 = pd.DataFrame(numpy.where(is_equal, '', attr), index=c1.index, columns=c1.columns)
+            res1 = pd.concat([res11, res12])
+            res1['source'] = res1['source'].apply(lambda x: '')
             res = pd.concat([res1, res2])
-            res['source'] = res['source'].apply(lambda x: '')
             return res
 
         Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
