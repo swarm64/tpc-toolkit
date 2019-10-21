@@ -96,21 +96,29 @@ class CorrectnessCheck:
             benchmark_rowcount, correctness_rowcount = benchmark_data.shape[0], correctness_data.shape[0]
 
             minrowcount = min(benchmark_rowcount, correctness_rowcount)
-            b1, c1 = benchmark_data.iloc[:minrowcount], correctness_data.iloc[:minrowcount]
 
-            # find additional rows and highlight all of them
-            b2, c2 = benchmark_data.iloc[minrowcount:], correctness_data.iloc[minrowcount:]
-            res2 = pd.concat([b2, c2])
-            # highlight all of them
-            res2.loc[:, :] = attr
+            # splitting benchmark results
+            benchmark_data_part_1 = benchmark_data.iloc[:minrowcount]
+            benchmark_data_part_2 = benchmark_data.iloc[minrowcount:]
+            # splitting correctness results
+            correctness_data_part1 = correctness_data.iloc[:minrowcount]
+            correctness_data_part2 = correctness_data.iloc[minrowcount:]
 
-            is_equal = b1.values == c1.values
-            res11 = pd.DataFrame(numpy.where(is_equal, '', attr), index=b1.index, columns=b1.columns)
-            res12 = pd.DataFrame(numpy.where(is_equal, '', attr), index=c1.index, columns=c1.columns)
-            res1 = pd.concat([res11, res12])
-            res1['source'] = res1['source'].apply(lambda x: '')
-            res = pd.concat([res1, res2])
-            return res
+            # prepare result style 1 and highlight the differences
+            is_equal = benchmark_data_part_1.values == correctness_data_part1.values
+            res_benchmark_style = pd.DataFrame(numpy.where(is_equal, '', attr), index=benchmark_data_part_1.index,
+                                               columns=benchmark_data_part_1.columns)
+            res_correctness_style = pd.DataFrame(numpy.where(is_equal, '', attr), index=correctness_data_part1.index,
+                                                 columns=correctness_data_part1.columns)
+            result_style_part_1 = pd.concat([res_benchmark_style, res_correctness_style])
+            result_style_part_1['source'] = result_style_part_1['source'].apply(lambda x: '')
+
+            # prepare result style 2 and highlight all of them
+            result_style_part_2 = pd.concat([benchmark_data_part_2, correctness_data_part2])
+            result_style_part_2.loc[:, :] = attr
+
+            result_style = pd.concat([result_style_part_1, result_style_part_2])
+            return result_style
 
         Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
 
