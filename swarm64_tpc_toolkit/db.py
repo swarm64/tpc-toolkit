@@ -1,6 +1,6 @@
 
+import json
 import logging
-import pprint
 import time
 
 from collections import namedtuple
@@ -95,7 +95,7 @@ class DB:
 
             with connection.cursor() as explain_plan_cursor:
                 explain_plan_cursor.execute(sql.replace('-- EXPLAIN (FORMAT JSON)', 'EXPLAIN (FORMAT JSON)'))
-                return pprint.pformat(str(explain_plan_cursor.fetchone()[0]))
+                return json.dumps(explain_plan_cursor.fetchone()[0], indent=4)
 
         except psycopg2.Error as e:
-            return f'Explain Output failed: {str(e)}'
+            return f'{{"Explain Output failed": "{str(e)}"}}'
