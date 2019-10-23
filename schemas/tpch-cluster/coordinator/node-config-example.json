@@ -1,0 +1,19 @@
+{
+  "partitions": 32,
+  "scale_factor": 1000,
+  "node_dbname": "tpch_sf1000_s64da_32part",
+  "fetch_size": 100000,
+  "nodes": [{
+    "name": "node_1",
+    "ip": "10.0.64.1"
+  }, {
+    "name": "node_2",
+    "ip": "10.0.64.2"
+  }, {
+    "name": "node_3",
+    "ip": "10.0.64.3"
+  }, {
+    "name": "node_4",
+    "ip": "10.0.64.4"
+  }]
+}
