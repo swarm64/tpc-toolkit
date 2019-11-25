@@ -11,7 +11,7 @@ LOG = logging.getLogger()
 class CorrectnessCheck:
     def __init__(self, scale_factor, benchmark):
         self.scale_factor = scale_factor
-        self.query_output_folder = 'query_results'
+        self.query_output_folder = os.path.join('results', 'query_results')
         self.correctness_results_folder = os.path.join('correctness_results',
                                                        benchmark, f'sf{self.scale_factor}')
 
