@@ -13,7 +13,7 @@ import pandas
 import yaml
 
 from .db import DB
-from .correctness import CorrectnessCheck
+from .correctness import Correctness
 
 
 LOG = logging.getLogger()
@@ -103,7 +103,7 @@ class Streams:
             stream_ids = range(self.stream_offset, self.num_streams + self.stream_offset)
             if self.num_streams == 0:
                 stream_ids = [0]
-            cc = CorrectnessCheck(self.scale_factor, self.benchmark)
+            cc = Correctness(self.scale_factor, self.benchmark)
             for query_number in results_dataframe.index:
                 for stream_id in stream_ids:
                     if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':

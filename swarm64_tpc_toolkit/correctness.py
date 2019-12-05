@@ -8,7 +8,7 @@ from pandas.io.formats.style import Styler
 LOG = logging.getLogger()
 
 
-class CorrectnessCheck:
+class Correctness:
     def __init__(self, scale_factor, benchmark):
         self.scale_factor = scale_factor
         self.query_output_folder = os.path.join('results', 'query_results')
@@ -67,8 +67,8 @@ class CorrectnessCheck:
             return 'Mismatch'
 
         if self.has_differences(benchmark_result, correctness_result):
-            self.html += CorrectnessCheck.to_html(self.diff,
-                                                  table_title=f'Mismatch in StreamId={stream_id}, Query={query_number}')
+            self.html += Correctness.to_html(self.diff,
+                                             table_title=f'Mismatch in StreamId={stream_id}, Query={query_number}')
             return 'Mismatch'
 
         return 'OK'

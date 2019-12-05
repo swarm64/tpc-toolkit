@@ -2,6 +2,7 @@
 from unittest.mock import call
 
 import psycopg2
+import pytest
 
 from swarm64_tpc_toolkit import db
 
@@ -14,6 +15,15 @@ def get_mocked_cursor(mocker):
     psycopg2_connect = mocker.patch('psycopg2.connect')
     mock_conn = psycopg2_connect.return_value
     return mock_conn.cursor.return_value
+
+
+@pytest.fixture
+def no_plan(monkeypatch):
+    def monkeyplan(conn, sql):
+        return None
+
+    some_db = db.DB
+    monkeypatch.setattr(some_db, "get_explain_output", monkeyplan)
 
 
 def test_db_init():
@@ -57,7 +67,7 @@ def test_db_run_query_ok(mocker):
     mock_cursor.execute.assert_called_once_with('SELECT 1')
 
 
-def test_db_run_query_timeout(mocker):
+def test_db_run_query_timeout(no_plan, mocker):
     mock_cursor = get_mocked_cursor(mocker)
     mock_cursor.execute.side_effect = psycopg2.extensions.QueryCanceledError('Timeout')
 
@@ -68,7 +78,7 @@ def test_db_run_query_timeout(mocker):
     mock_cursor.execute.assert_called_once_with('SELECT 1')
 
 
-def test_db_run_query_error(mocker):
+def test_db_run_query_error(no_plan, mocker):
     mock_cursor = get_mocked_cursor(mocker)
     mock_cursor.execute.side_effect = psycopg2.InternalError('Error')
 
