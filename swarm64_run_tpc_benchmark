@@ -26,7 +26,7 @@ if __name__ == '__main__':
         'Supply a full path to the file.'
     ))
 
-    args_to_parse.add_argument('--benchmark', required=True, choices=('tpch', 'tpcds'), help=(
+    args_to_parse.add_argument('--benchmark', required=True, choices=('tpch', 'tpcds', 'ssb'), help=(
         'Which benchmark to run.'
     ))
 
