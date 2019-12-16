@@ -1,6 +1,7 @@
 # Summary
 
-This toolset runs TPC-H and TPC-DS benchmarks.
+This toolset provides methods to execute the TPC-H, TPC-DS and SSB benchmark on
+Swarm64 DA and native PostgreSQL.
 
 
 # Prerequisites
