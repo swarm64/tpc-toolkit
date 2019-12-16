@@ -7,7 +7,8 @@ This toolset runs TPC-H and TPC-DS benchmarks.
 
 - Python min. 3.6 and pip3
 - Install additional packages with `pip3 install -r requirements.txt`
-- The database can be accessed with user `postgres` *without password*
+- For loading the data, the database must be accessible with the user
+  `postgres` *without password*
 
 
 # Create a database and load data
@@ -17,6 +18,7 @@ There are two benchmarks available: TPC-H and TPC-DS.
 1. To load a database with a dataset, go to the correct benchmark directory:
    For TPC-H: `cd schemas/tpch`
    For TPC-DS: `cd schemas/tpcds`
+   For SSB: `cd schemas/ssb`
 
 2. Run the `loader.sh` script with the following parameters:
 
@@ -60,7 +62,7 @@ Start a TPC-H or TPC-DS benchmark:
 
     ./swarm64_run_tpc_benchmark \
         --dsn postgresql://postgres@localhost/<target-db> \
-        --benchmark <tpch|tpcds>
+        --benchmark <tpch|tpcds|ssb>
 
 This runs the benchmark without any query runtime restriction. Ideally, use the
 `--timeout` parameter to limit query runtime. Queries might otherwise run for
@@ -68,10 +70,10 @@ several hours or longer.
 
 The minimum required parameters are as follows:
 
-| Parameters  | Descriptions                                    |
-| ----------- | ----------------------------------------------- |
-| `dsn`       | The full DSN of the DB to connect to            |
-| `benchmark` | The benchmark to use. Either `tpch` or `tpcds`. |
+| Parameters  | Descriptions                                          |
+| ----------- | ----------------------------------------------------- |
+| `dsn`       | The full DSN of the DB to connect to                  |
+| `benchmark` | The benchmark to use. Either `tpch`, `tpcds` or `ssb` |
 
 Additional parameters are as follows:
 
