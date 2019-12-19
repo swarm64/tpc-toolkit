@@ -8,6 +8,7 @@ from datetime import datetime
 from multiprocessing import Pool
 from natsort import natsorted
 from pandas.io.formats.style import Styler
+from pathlib import Path
 
 import pandas
 import yaml
@@ -34,12 +35,22 @@ class Streams:
         # │   ├── query_plans/
         # │   │   ├── 0_1.txt
         # │   │   ├── 0_2.txt
-        #
+
+        self.output = args.output
+        self.csv_file = args.csv_file
+        if 'csv' in self.output:
+            Path(self.csv_file).touch()
+
         self.results_root_dir = 'results'
-        self.csv_file = os.path.join(self.results_root_dir, args.csv_file)
         self.html_output = os.path.join(self.results_root_dir, 'report.html')
         self.query_results = os.path.join(self.results_root_dir, 'query_results')
         self.explain_analyze_dir = os.path.join(self.results_root_dir, 'query_plans')
+
+        if args.check_correctness and not os.path.exists(self.results_root_dir):
+            try:
+                os.makedirs(self.results_root_dir)
+            except OSError as exc:
+                LOG.exception(f'Could not create directory {self.results_root_dir}')
 
         self.config = Streams._make_config(args)
         self.db = DB(args.dsn)
@@ -48,7 +59,6 @@ class Streams:
         self.query_dir = os.path.join('queries', args.benchmark)
         self.benchmark = args.benchmark
         self.stream_offset = args.stream_offset
-        self.output = args.output
         self.scale_factor = args.scale_factor
 
         self.explain_analyze = args.explain_analyze
