@@ -19,6 +19,7 @@ def args():
         csv_file = 'results.csv'
         scale_factor = None
         explain_analyze = False
+        check_correctness = False
 
     return DefaultArgs
 
