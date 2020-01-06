@@ -1,6 +1,6 @@
 # Summary
 
-This toolset provides methods to execute the TPC-H, TPC-DS and SSB benchmark on
+This toolset provides methods to execute the TPC-H, TPC-DS, and SSB benchmark on
 Swarm64 DA and native PostgreSQL.
 
 
@@ -13,8 +13,6 @@ Swarm64 DA and native PostgreSQL.
 
 
 # Create a database and load data
-
-There are two benchmarks available: TPC-H and TPC-DS.
 
 1. To load a database with a dataset, go to the correct benchmark directory:
    For TPC-H: `cd schemas/tpch`
@@ -59,7 +57,7 @@ There are two benchmarks available: TPC-H and TPC-DS.
 
 # Run a benchmark
 
-Start a TPC-H or TPC-DS benchmark:
+Start a benchmark:
 
     ./swarm64_run_tpc_benchmark \
         --dsn postgresql://postgres@localhost/<target-db> \
