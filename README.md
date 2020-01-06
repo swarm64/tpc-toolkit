@@ -37,8 +37,8 @@ There are two benchmarks available: TPC-H and TPC-DS.
 
    | Parameters       | Descriptions                                         |
    | ---------------- | ---------------------------------------------------- |
-   | `num-partitions` | The number of partitions to use, if applicable. The <br> default is 32. |
-   | `chunks`         | Chunk large tables into smaller pieces during ingestion. <br> Defaults to 10. |
+   | `num-partitions` | The number of partitions to use, if applicable. <br> The default is 32. |
+   | `chunks`         | Chunk large tables into smaller pieces during ingestion. <br> The default is 10. |
    | `db-host`        | Alternative host for the database.                   |
    | `db-port`        | Alternative port for the database.                   |
 
@@ -64,7 +64,7 @@ The minimum required parameters are as follows:
 
 | Parameters  | Descriptions                                    |
 | ----------- | ----------------------------------------------- |
-| `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` <br> The port is optional and defaults to 5432.<br>  Example: ``--dsn postgresql://postgres@localhost:5433/example-database``|
+| `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` <br> The port is optional and the default is 5432.<br>  Example: ``--dsn postgresql://postgres@localhost:5433/example-database``|
 | `benchmark` | The benchmark to use. Either `tpch` or `tpcds`. |
 
 Additional parameters are as follows:
