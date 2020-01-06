@@ -29,22 +29,16 @@ There are two benchmarks available: TPC-H and TPC-DS.
 
    | Parameters     | Descriptions                                           |
    | -------------- | ------------------------------------------------------ |
-   | `schema`       | The schema to deploy. Schemas are directories in the   |
-   |                | current working directory and start with either `sdb_` |
-   |                | or `psql_`. The schema name equals the directory name. |
+   | `schema`       | The schema to deploy. Schemas are directories in the current working <br> directory and start with either `sdb_` or `psql_`. <br> The schema name equals the directory name. |
    | `scale-factor` | The scale factor to use, such as `100` or `1000`.      |
-   | `dbname`       | The name of the target database. If the database does  |
-   |                | not exist, it will be created. If it does exist, it    |
-   |                | will be deleted and recreated.                         |
+   | `dbname`       | The name of the target database. If the database does  <br>  not exist, it will be created. If it does exist, it will be deleted and recreated.    |
 
    Additional parameters are as follows:
 
    | Parameters       | Descriptions                                         |
    | ---------------- | ---------------------------------------------------- |
-   | `num-partitions` | The number of partitions to use, if applicable. The  |
-   |                  | default is 32.                                       |
-   | `chunks`         | Chunk large tables into smaller pieces during        |
-   |                  | ingestion. Defaults to 10.                           |
+   | `num-partitions` | The number of partitions to use, if applicable. The <br> default is 32. |
+   | `chunks`         | Chunk large tables into smaller pieces during ingestion. <br> Defaults to 10. |
    | `db-host`        | Alternative host for the database.                   |
    | `db-port`        | Alternative port for the database.                   |
 
@@ -70,7 +64,7 @@ The minimum required parameters are as follows:
 
 | Parameters  | Descriptions                                    |
 | ----------- | ----------------------------------------------- |
-| `dsn`       | The full DSN of the DB to connect to            |
+| `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` <br> The port is optional and defaults to 5432.<br>  Example: ``--dsn postgresql://postgres@localhost:5433/example-database``|
 | `benchmark` | The benchmark to use. Either `tpch` or `tpcds`. |
 
 Additional parameters are as follows:
