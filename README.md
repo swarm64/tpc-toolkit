@@ -1,22 +1,23 @@
 # Summary
 
-This toolset runs TPC-H and TPC-DS benchmarks.
+This toolset provides methods to execute the TPC-H, TPC-DS, and SSB benchmark on
+Swarm64 DA and native PostgreSQL.
 
 
 # Prerequisites
 
 - Python min. 3.6 and pip3
 - Install additional packages with `pip3 install -r requirements.txt`
-- The database can be accessed with user `postgres` *without password*
+- For loading the data, the database must be accessible with the user
+  `postgres` *without password*
 
 
 # Create a database and load data
 
-There are two benchmarks available: TPC-H and TPC-DS.
-
-1. To load a database with a dataset, go to the correct benchmark directory: \
-   For TPC-H: `cd schemas/tpch` \
-   For TPC-DS: `cd schemas/tpcds`
+1. To load a database with a dataset, go to the correct benchmark directory:\
+   For TPC-H: `cd schemas/tpch`\
+   For TPC-DS: `cd schemas/tpcds`\
+   For SSB: `cd schemas/ssb`
 
 2. Run the `loader.sh` script with the following parameters:
 
@@ -50,11 +51,11 @@ There are two benchmarks available: TPC-H and TPC-DS.
 
 # Run a benchmark
 
-Start a TPC-H or TPC-DS benchmark:
+Start a benchmark:
 
     ./swarm64_run_tpc_benchmark \
         --dsn postgresql://postgres@localhost/<target-db> \
-        --benchmark <tpch|tpcds>
+        --benchmark <tpch|tpcds|ssb>
 
 This runs the benchmark without any query runtime restriction. Ideally, use the
 `--timeout` parameter to limit query runtime. Queries might otherwise run for
@@ -65,7 +66,7 @@ several hours or longer.
 | Parameter   | Description                                     |
 | ----------- | ----------------------------------------------- |
 | `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` The port is optional and the default is 5432.<br>  Example: ``--dsn postgresql://postgres@localhost:5433/example-database``|
-| `benchmark` | The benchmark to use. Either `tpch` or `tpcds`. |
+| `benchmark` | The benchmark to use: `tpch`, `tpcds` or `ssb`        |
 
 ### Optional Parameters
 

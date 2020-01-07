@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import logging
 import os
@@ -8,12 +9,13 @@ from datetime import datetime
 from multiprocessing import Pool
 from natsort import natsorted
 from pandas.io.formats.style import Styler
+from pathlib import Path
 
 import pandas
 import yaml
 
 from .db import DB
-from .correctness import CorrectnessCheck
+from .correctness import Correctness
 
 
 LOG = logging.getLogger()
@@ -21,6 +23,36 @@ LOG = logging.getLogger()
 
 class Streams:
     def __init__(self, args):
+
+        # The Output structure:
+        #
+        # tpc-toolkit/
+        # ├── results/
+        # │   ├── results.csv
+        # │   ├── report.html
+        # │   ├── query_results/
+        # │   │   ├── 0_1.csv
+        # │   │   ├── 0_2.csv
+        # │   ├── query_plans/
+        # │   │   ├── 0_1.txt
+        # │   │   ├── 0_2.txt
+
+        self.output = args.output
+        self.csv_file = args.csv_file
+        if 'csv' in self.output:
+            Path(self.csv_file).touch()
+
+        self.results_root_dir = 'results'
+        self.html_output = os.path.join(self.results_root_dir, 'report.html')
+        self.query_results = os.path.join(self.results_root_dir, 'query_results')
+        self.explain_analyze_dir = os.path.join(self.results_root_dir, 'query_plans')
+
+        if args.check_correctness and not os.path.exists(self.results_root_dir):
+            try:
+                os.makedirs(self.results_root_dir)
+            except OSError as exc:
+                LOG.exception(f'Could not create directory {self.results_root_dir}')
+
         self.config = Streams._make_config(args)
         self.db = DB(args.dsn)
         self.num_streams = args.streams
@@ -28,13 +60,9 @@ class Streams:
         self.query_dir = os.path.join('queries', args.benchmark)
         self.benchmark = args.benchmark
         self.stream_offset = args.stream_offset
-        self.output = args.output
-        self.csv_file = args.csv_file
         self.scale_factor = args.scale_factor
 
         self.explain_analyze = args.explain_analyze
-        self.explain_analyze_dir = os.path.join('.', f'plans_{int(time.time())}')
-        self.html_output = 'report.html'
 
     @staticmethod
     def _make_config(args):
@@ -83,9 +111,12 @@ class Streams:
 
     def add_correctness(self, results_dataframe):
         if self.scale_factor:
-            cc = CorrectnessCheck(self.scale_factor, self.benchmark)
+            stream_ids = range(self.stream_offset, self.num_streams + self.stream_offset)
+            if self.num_streams == 0:
+                stream_ids = [0]
+            cc = Correctness(self.scale_factor, self.benchmark)
             for query_number in results_dataframe.index:
-                for stream_id in range(1, self.num_streams+1):
+                for stream_id in stream_ids:
                     if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
                         results_dataframe.at[query_number, f'Stream {stream_id:02} status'] =\
                             cc.check_correctness(stream_id, query_number)
@@ -110,10 +141,13 @@ class Streams:
             self.db.reset_config()
             self.db.apply_config(self.config.get('dbconfig', {}))
 
+            totalstart = time.perf_counter()
             results = self.run_streams()
+            totalstop = time.perf_counter()
             results_df = self.save_to_dataframe(results)
             results_with_correctness = self.add_correctness(results_df)
             self._print_results(results_with_correctness)
+            LOG.info(f'Total time spent: {totalstop - totalstart:.2f} secs.')
 
         except KeyboardInterrupt:
             # Reset all the stuff
@@ -161,7 +195,7 @@ class Streams:
                 self._save_explain_plan(stream_id, query_id, self.db.plan)
 
             if self.scale_factor:
-                Streams._save_query_output(stream_id, query_id, query_result)
+                self._save_query_output(stream_id, query_id, query_result)
 
             runtime = round(timing.stop - timing.start, 2)
             LOG.info(f'finished {pretext}: {runtime:7.2f} - {timing.status.name}')
@@ -170,10 +204,9 @@ class Streams:
 
         return {stream_id: timings}
 
-    @staticmethod
-    def _save_query_output(stream_id, query_id, query_result):
+    def _save_query_output(self, stream_id, query_id, query_result):
 
-        filename = f'query_results/{stream_id}_{query_id}.csv'
+        filename = os.path.join(self.query_results, f'{stream_id}_{query_id}.csv')
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         if query_result is not None and query_result[1]:
