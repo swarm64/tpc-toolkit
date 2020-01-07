@@ -65,7 +65,7 @@ several hours or longer.
 
 | Parameter   | Description                                     |
 | ----------- | ----------------------------------------------- |
-| `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` The port is optional and the default is 5432.<br>  Example: ``--dsn postgresql://postgres@localhost:5433/example-database``|
+| `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` <br> The port is optional and the default is 5432.<br> Example with port 5433: ``--dsn postgresql://postgres@localhost:5433/example-database``|
 | `benchmark` | The benchmark to use: `tpch`, `tpcds` or `ssb`        |
 
 ### Optional Parameters
