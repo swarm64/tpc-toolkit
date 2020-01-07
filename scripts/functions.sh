@@ -59,7 +59,7 @@ case $i in
     shift
     ;;
     --dbname=*)
-    DB="${i#*=}"
+    DB="${i#*=}" && DB="${DB,,}"
     shift
     ;;
     --db-host=*)
