@@ -1,6 +1,6 @@
 # Summary
 
-This toolset runs TPC-H and TPC-DS benchmarks.
+This toolkit runs TPC-H and TPC-DS benchmarks.
 
 
 # Prerequisites
