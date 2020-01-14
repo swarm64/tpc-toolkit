@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd "$(dirname "$(readlink -f "$0")")"
 source ../../scripts/functions.sh
 
 function ingest {
@@ -56,3 +57,4 @@ psql_exec_cmd "ANALYZE orders"
 psql_exec_cmd "ANALYZE part"
 psql_exec_cmd "ANALYZE partsupp"
 psql_exec_cmd "ANALYZE supplier"
+
