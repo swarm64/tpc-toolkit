@@ -5,11 +5,12 @@ import argparse
 import logging
 import sys
 
-from logging.config import fileConfig
+from os import chdir
 
+from logging.config import fileConfig
 from swarm64_tpc_toolkit.streams import Streams
 
-
+chdir(sys.path[0])
 fileConfig('configs/logging.ini')
 logger = logging.getLogger()
 
