@@ -57,4 +57,3 @@ psql_exec_cmd "ANALYZE orders"
 psql_exec_cmd "ANALYZE part"
 psql_exec_cmd "ANALYZE partsupp"
 psql_exec_cmd "ANALYZE supplier"
-
