@@ -6,9 +6,7 @@ import logging
 import sys
 
 from logging.config import fileConfig
-
 from swarm64_tpc_toolkit.streams import Streams
-
 
 fileConfig('configs/logging.ini')
 logger = logging.getLogger()
