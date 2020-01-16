@@ -1,22 +1,23 @@
 # Summary
 
-This toolset runs TPC-H and TPC-DS benchmarks.
+This toolkit provides methods to execute the TPC-H, TPC-DS, and SSB benchmark on
+Swarm64 DA and native PostgreSQL.
 
 
 # Prerequisites
 
 - Python min. 3.6 and pip3
 - Install additional packages with `pip3 install -r requirements.txt`
-- The database can be accessed with user `postgres` *without password*
+- For loading the data, the database must be accessible with the user
+  `postgres` *without password*
 
 
 # Create a database and load data
 
-There are two benchmarks available: TPC-H and TPC-DS.
-
-1. To load a database with a dataset, go to the correct benchmark directory:
-   For TPC-H: `cd schemas/tpch`
-   For TPC-DS: `cd schemas/tpcds`
+1. To load a database with a dataset, go to the correct benchmark directory:\
+   For TPC-H: `cd schemas/tpch`\
+   For TPC-DS: `cd schemas/tpcds`\
+   For SSB: `cd schemas/ssb`
 
 2. Run the `loader.sh` script with the following parameters:
 
@@ -25,28 +26,22 @@ There are two benchmarks available: TPC-H and TPC-DS.
         --scale-factor=<scale-factor-to-use> \
         --dbname=<target-db>
 
-   The required parameters are as follows:
+### Required Parameters
 
-   | Parameters     | Descriptions                                           |
+   | Parameter      | Description                                            |
    | -------------- | ------------------------------------------------------ |
-   | `schema`       | The schema to deploy. Schemas are directories in the   |
-   |                | current working directory and start with either `sdb_` |
-   |                | or `psql_`. The schema name equals the directory name. |
-   | `scale-factor` | The scale factor to use, such as `100` or `1000`.      |
-   | `dbname`       | The name of the target database. If the database does  |
-   |                | not exist, it will be created. If it does exist, it    |
-   |                | will be deleted and recreated.                         |
+   | `schema`       | The schema to deploy. Schemas are directories in the current working directory and start with either `sdb_` or `psql_`. The schema name equals the directory name. |
+   | `scale-factor` | The scale factor to use, such as `10`, `100` or `1000`.      |
+   | `dbname`       | The name of the target database. If the database does not exist, it will be created. If it does exist, it will be deleted and recreated.    |
 
-   Additional parameters are as follows:
+### Optional Parameters
 
-   | Parameters       | Descriptions                                         |
+   | Parameter       | Description                                           |
    | ---------------- | ---------------------------------------------------- |
-   | `num-partitions` | The number of partitions to use, if applicable. The  |
-   |                  | default is 32.                                       |
-   | `chunks`         | Chunk large tables into smaller pieces during        |
-   |                  | ingestion. Defaults to 10.                           |
-   | `db-host`        | Alternative host for the database.                   |
-   | `db-port`        | Alternative port for the database.                   |
+   | `num-partitions` | The number of partitions to use, if applicable. Default: 32 |
+   | `chunks`         | Chunk large tables into smaller pieces during ingestion. Default: 10 |
+   | `db-host`        | Alternative host for the database. Default: localhost |
+   | `db-port`        | Alternative port for the database. Default: 5432|
 
    Depending on the scale factor you choose, the time it takes for the script
    to finish might take up to several hours. After the script creates the
@@ -56,26 +51,26 @@ There are two benchmarks available: TPC-H and TPC-DS.
 
 # Run a benchmark
 
-Start a TPC-H or TPC-DS benchmark:
+Start a benchmark:
 
     ./swarm64_run_tpc_benchmark \
         --dsn postgresql://postgres@localhost/<target-db> \
-        --benchmark <tpch|tpcds>
+        --benchmark <tpch|tpcds|ssb>
 
 This runs the benchmark without any query runtime restriction. Ideally, use the
 `--timeout` parameter to limit query runtime. Queries might otherwise run for
 several hours or longer.
 
-The minimum required parameters are as follows:
+### Required Parameters
 
-| Parameters  | Descriptions                                    |
+| Parameter   | Description                                     |
 | ----------- | ----------------------------------------------- |
-| `dsn`       | The full DSN of the DB to connect to            |
-| `benchmark` | The benchmark to use. Either `tpch` or `tpcds`. |
+| `dsn`       | The full DSN of the DB to connect to. DSN layout: <br> ``postgresql://<user>@<host>:<target-port>/<target-db>`` <br> The port is optional and the default is 5432.<br> Example with port 5433: ``--dsn postgresql://postgres@localhost:5433/example-database``|
+| `benchmark` | The benchmark to use: `tpch`, `tpcds` or `ssb`        |
 
-Additional parameters are as follows:
+### Optional Parameters
 
-| Parameters | Descriptions                                       |
+| Parameter  | Description                                        |
 | ---------- | -------------------------------------------------- |
 | `config`   | Path to additional YAML configuration file.        |
 | `timeout`  | The maximum time a query may run, such as `15min`. |

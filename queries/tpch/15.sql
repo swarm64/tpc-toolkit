@@ -1,18 +1,17 @@
 -- using 1512813808 as a seed to the RNG
 
-create view revenue0 (supplier_no, total_revenue) as
+-- EXPLAIN (FORMAT JSON)
+with revenue0 as (
     select
-        l_suppkey,
-        sum(l_extendedprice * (1 - l_discount))
+        l_suppkey as supplier_no,
+        sum(l_extendedprice * (1 - l_discount)) as total_revenue
     from
         lineitem
     where
         l_shipdate >= date '1995-10-01'
         and l_shipdate < date '1995-10-01' + interval '3' month
     group by
-        l_suppkey;
-
--- EXPLAIN (FORMAT JSON)
+        l_suppkey)
 select
     s_suppkey,
     s_name,
@@ -32,6 +31,3 @@ where
     )
 order by
     s_suppkey;
-
-drop view revenue0;
-
