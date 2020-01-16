@@ -16,9 +16,9 @@ with wss as
  group by d_week_seq,ss_store_sk
  )
   select  s_store_name1,s_store_id1,d_week_seq1
-       ,sun_sales1/sun_sales2,mon_sales1/mon_sales2
-       ,tue_sales1/tue_sales2,wed_sales1/wed_sales2,thu_sales1/thu_sales2
-       ,fri_sales1/fri_sales2,sat_sales1/sat_sales2
+       ,sun_sales1/sun_sales2 as col1, mon_sales1/mon_sales2 as col2
+       ,tue_sales1/tue_sales2 as col3, wed_sales1/wed_sales2 as col4, thu_sales1/thu_sales2 as col5
+       ,fri_sales1/fri_sales2 as col6, sat_sales1/sat_sales2 as col7
  from
  (select s_store_name s_store_name1,wss.d_week_seq d_week_seq1
         ,s_store_id s_store_id1,sun_sales sun_sales1

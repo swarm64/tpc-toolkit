@@ -60,6 +60,9 @@ case $i in
     ;;
     --dbname=*)
     DB="${i#*=}"
+    if [[ $DB =~ [A-Z] ]]; then
+        echo "ERROR: Uppercase letters are not allowed in database names." && exit -1
+    fi
     shift
     ;;
     --db-host=*)
