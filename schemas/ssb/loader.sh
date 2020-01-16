@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd "$(dirname "$(readlink -f "$0")")"
 source ../../scripts/functions.sh
 
 function ingest {
