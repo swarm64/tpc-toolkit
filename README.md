@@ -7,6 +7,7 @@ Swarm64 DA and native PostgreSQL.
 # Prerequisites
 
 - Python min. 3.6 and pip3
+- For TPC-DS only: Linux package `recode`
 - Install additional packages with `pip3 install -r requirements.txt`
 - For loading the data, the database must be accessible with the user
   `postgres` *without password*
