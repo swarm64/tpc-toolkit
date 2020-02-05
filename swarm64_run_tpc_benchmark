@@ -36,8 +36,11 @@ if __name__ == '__main__':
         Benchmark(name='ssb', base_dir='.')
     ]
     benchmarks_dir = 'benchmarks'
-    for directory in os.listdir(benchmarks_dir):
-        benchmarks.append(Benchmark(name=directory, base_dir=benchmarks_dir))
+    try:
+        for directory in os.listdir(benchmarks_dir):
+            benchmarks.append(Benchmark(name=directory, base_dir=benchmarks_dir))
+    except FileNotFoundError:
+        pass
 
     benchmark_names = sorted([benchmark.name for benchmark in benchmarks])
     args_to_parse.add_argument('--benchmark', required=True, choices=benchmark_names, help=(
