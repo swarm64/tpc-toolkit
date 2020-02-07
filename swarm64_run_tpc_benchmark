@@ -30,11 +30,7 @@ if __name__ == '__main__':
         'Supply a full path to the file.'
     ))
 
-    benchmarks = [
-        Benchmark(name='tpch', base_dir='.'),
-        Benchmark(name='tpcds', base_dir='.'),
-        Benchmark(name='ssb', base_dir='.')
-    ]
+    benchmarks = [Benchmark(name=name, base_dir='.') for name in ('tpch', 'tpcds', 'ssb')]
     benchmarks_dir = 'benchmarks'
     try:
         for directory in os.listdir(benchmarks_dir):
