@@ -3,10 +3,11 @@
 
 import argparse
 import logging
+import os
 import sys
 
 from logging.config import fileConfig
-from swarm64_tpc_toolkit.streams import Streams
+from swarm64_tpc_toolkit.streams import Streams, Benchmark
 
 fileConfig('configs/logging.ini')
 logger = logging.getLogger()
@@ -29,7 +30,16 @@ if __name__ == '__main__':
         'Supply a full path to the file.'
     ))
 
-    args_to_parse.add_argument('--benchmark', required=True, choices=('tpch', 'tpcds', 'ssb'), help=(
+    benchmarks = [Benchmark(name=name, base_dir='.') for name in ('tpch', 'tpcds', 'ssb')]
+    benchmarks_dir = 'benchmarks'
+    try:
+        for directory in os.listdir(benchmarks_dir):
+            benchmarks.append(Benchmark(name=directory, base_dir=benchmarks_dir))
+    except FileNotFoundError:
+        pass
+
+    benchmark_names = sorted([benchmark.name for benchmark in benchmarks])
+    args_to_parse.add_argument('--benchmark', required=True, choices=benchmark_names, help=(
         'Which benchmark to run.'
     ))
 
@@ -80,4 +90,9 @@ if __name__ == '__main__':
     ))
 
     args = args_to_parse.parse_args()
-    Streams(args).run()
+    for benchmark in benchmarks:
+        if benchmark.name == args.benchmark:
+            benchmark_to_run = benchmark
+            break
+
+    Streams(args, benchmark_to_run).run()

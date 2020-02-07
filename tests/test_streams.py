@@ -13,7 +13,6 @@ def args():
         dsn = 'postgresql://noone@nowhere:4321/nothing'
         streams = 0
         netdata_url = None
-        benchmark = 'tpch'
         stream_offset = 1
         output = 'csv'
         csv_file = 'results.csv'
@@ -24,41 +23,46 @@ def args():
     return DefaultArgs
 
 
-def test_make_config_no_config_file(mocker, args):
+@pytest.fixture
+def benchmark():
+    return streams.Benchmark(name='tpch', base_dir='foo')
+
+
+def test_make_config_no_config_file(mocker, args, benchmark):
     yaml_mock = mocker.patch('yaml.load')
 
-    obj = streams.Streams(args)
+    obj = streams.Streams(args, benchmark)
 
     yaml_mock.assert_not_called()
     assert 'timeout' not in obj.config
 
 
-def test_make_config_file_present(mocker, args):
+def test_make_config_file_present(mocker, args, benchmark):
     mocker.patch('builtins.open', mocker.mock_open())
     yaml_mock = mocker.patch('yaml.load')
 
     args.config = 'foo.yaml'
-    obj = streams.Streams(args)
+    obj = streams.Streams(args, benchmark)
 
     yaml_mock.assert_called_once()
     assert 'timeout' not in obj.config
 
 
-def test_make_config_override_timeout(mocker, args):
+def test_make_config_override_timeout(mocker, args, benchmark):
     mocker.patch('builtins.open', mocker.mock_open())
     mocker.patch('yaml.load', return_value={'timeout': 100})
 
     args.timeout = 101
-    obj = streams.Streams(args)
+    obj = streams.Streams(args, benchmark)
 
     assert obj.config['timeout'] == 101
 
 
-def test_read_sql_file(mocker, args):
+def test_read_sql_file(mocker, args, benchmark):
     open_patched = mocker.patch('builtins.open', mocker.mock_open(read_data='SELECT 1'))
 
-    result = streams.Streams(args).read_sql_file(1024)
-    open_patched.assert_called_with(f'queries/{args.benchmark}/1024.sql', 'r')
+    result = streams.Streams(args, benchmark).read_sql_file(1024)
+    open_patched.assert_called_with(f'{benchmark.base_dir}/queries/{benchmark.name}/1024.sql', 'r')
     assert result == 'SELECT 1'
 
 
@@ -70,16 +74,16 @@ def test_apply_sql_modifications():
     assert sql == 'SELECT AA, B, C FROM foo WHERE bor = 1'
 
 
-def test_make_run_args(args):
-    run_args = streams.Streams(args)._make_run_args()
+def test_make_run_args(args, benchmark):
+    run_args = streams.Streams(args, benchmark)._make_run_args()
     assert run_args == ((0,),)
 
     args.streams = 3
-    run_args = streams.Streams(args)._make_run_args()
+    run_args = streams.Streams(args, benchmark)._make_run_args()
     assert run_args == ((1,), (2,), (3,))
 
 
-def test_get_stream_sequence(mocker, args):
+def test_get_stream_sequence(mocker, args, benchmark):
     open_patched = mocker.patch('builtins.open', mocker.mock_open(read_data=''))
     mocker.patch('yaml.load', return_value=[
         [0, 1, 2],
@@ -88,16 +92,16 @@ def test_get_stream_sequence(mocker, args):
         [1, 0, 2]
     ])
 
-    result = streams.Streams(args).get_stream_sequence(2)
-    open_patched.assert_called_with(f'queries/{args.benchmark}/streams.yaml', 'r')
+    result = streams.Streams(args, benchmark).get_stream_sequence(2)
+    open_patched.assert_called_with(f'{benchmark.base_dir}/queries/{benchmark.name}/streams.yaml', 'r')
     assert result == [2, 1, 0]
 
 
-def test_run_single_stream(mocker, args):
+def test_run_single_stream(mocker, args, benchmark):
     pool_mock = mocker.patch('multiprocessing.pool.Pool', autospec=True)
     pool_mock_obj = pool_mock.return_value.__enter__.return_value
 
-    s = streams.Streams(args)
+    s = streams.Streams(args, benchmark)
     s.run_streams()
 
     stream_ids = ((0,),)
@@ -105,12 +109,12 @@ def test_run_single_stream(mocker, args):
     pool_mock_obj.starmap.assert_called_once_with(s._run_stream, stream_ids)
 
 
-def test_run_multiple_streams(mocker, args):
+def test_run_multiple_streams(mocker, args, benchmark):
     pool_mock = mocker.patch('multiprocessing.pool.Pool', autospec=True)
     pool_mock_obj = pool_mock.return_value.__enter__.return_value
 
     args.streams = 3
-    s = streams.Streams(args)
+    s = streams.Streams(args, benchmark)
     s.run_streams()
 
     stream_ids = ((1,), (2,), (3,))
@@ -118,7 +122,7 @@ def test_run_multiple_streams(mocker, args):
     pool_mock_obj.starmap.assert_called_once_with(s._run_stream, stream_ids)
 
 
-def test_run_stream(mocker, args):
+def test_run_stream(mocker, args, benchmark):
     psycopg2_connect = mocker.patch('psycopg2.connect')
     mock_conn = psycopg2_connect.return_value
     mock_cursor = mock_conn.cursor.return_value
@@ -127,7 +131,7 @@ def test_run_stream(mocker, args):
     test_sql = 'SELECT 1'
     test_stream_id = 42
 
-    s = streams.Streams(args)
+    s = streams.Streams(args, benchmark)
     s.config['ignore'] = [4]
     executed_test_sequence = tuple([1, 2001, -3])
 
@@ -144,8 +148,8 @@ def test_run_stream(mocker, args):
     assert len(result[test_stream_id]) == len(executed_test_sequence)
 
 
-def test_run(mocker, args):
-    s = streams.Streams(args)
+def test_run(mocker, args, benchmark):
+    s = streams.Streams(args, benchmark)
     mocker.patch.object(s, '_print_results', autospec=True)
     mocker.patch.object(s, 'save_to_dataframe', autospec=True)
     db_mock = mocker.patch.object(s, 'db', autospec=True)
@@ -157,8 +161,8 @@ def test_run(mocker, args):
     run_streams_mock.assert_called_once()
 
 
-def test_run_keyboard_interrupt(mocker, args):
-    s = streams.Streams(args)
+def test_run_keyboard_interrupt(mocker, args, benchmark):
+    s = streams.Streams(args, benchmark)
     db_mock = mocker.patch.object(s, 'db', autospec=True)
     run_streams_mock = mocker.patch.object(s, 'run_streams', side_effect=KeyboardInterrupt('Ctrl-C!'))
     s.run()
