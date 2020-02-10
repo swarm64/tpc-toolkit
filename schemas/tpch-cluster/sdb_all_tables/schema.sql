@@ -3,11 +3,12 @@
 {% set node = node|int %}
 
 CREATE EXTENSION swarm64da;
+CREATE EXTENSION int_hash;
 
-CREATE FUNCTION hash_swarm64_bigint(bigint, bigint) RETURNS bigint AS 'SELECT $1::bigint' LANGUAGE SQL IMMUTABLE STRICT;
+CREATE FUNCTION hash_swarm64_bigint(bigint, bigint) RETURNS bigint AS 'SELECT abs(hash($1))' LANGUAGE SQL IMMUTABLE STRICT;
 CREATE OPERATOR CLASS swarm64_hash_op_class_bigint FOR TYPE bigint USING hash AS FUNCTION 2 hash_swarm64_bigint(bigint, bigint);
 
-CREATE FUNCTION hash_swarm64_int(int, bigint) RETURNS bigint AS 'SELECT $1::bigint' LANGUAGE SQL IMMUTABLE STRICT;
+CREATE FUNCTION hash_swarm64_int(int, bigint) RETURNS bigint AS 'SELECT abs(hash($1))' LANGUAGE SQL IMMUTABLE STRICT;
 CREATE OPERATOR CLASS swarm64_hash_op_class_int FOR TYPE int USING hash AS FUNCTION 2 hash_swarm64_int(int, bigint);
 
 CREATE TABLE nation (

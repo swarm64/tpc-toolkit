@@ -2,6 +2,7 @@ DROP DATABASE IF EXISTS {{ node_dbname }}_cluster_master;
 CREATE DATABASE {{ node_dbname }}_cluster_master;
 \c {{ node_dbname }}_cluster_master;
 
+CREATE EXTENSION int_hash;
 {% if 's64da' in node_dbname %}
 CREATE EXTENSION swarm64da;
 {% endif %}
@@ -10,7 +11,7 @@ CREATE EXTENSION postgres_fdw;
 {% for node in nodes %}
 CREATE SERVER swarm_node_{{ node['name'] }}
 FOREIGN DATA WRAPPER postgres_fdw
-OPTIONS(host '{{ node["ip"] }}', port '5432', dbname '{{ node_dbname }}', fetch_size '{{ fetch_size }}', use_remote_estimate 'true');
+OPTIONS(host '{{ node["ip"] }}', port '5432', dbname '{{ node_dbname }}', fetch_size '{{ fetch_size }}', use_remote_estimate 'false');
 
 CREATE USER MAPPING FOR postgres
 SERVER swarm_node_{{ node['name'] }}

@@ -12,7 +12,7 @@ function ingest {
     NUM_NODES=${#NODES[@]}
     PSQL_COPY="COPY $TABLE FROM STDIN WITH DELIMITER '|'"
     DBGEN="./dbgen -s $SCALE_FACTOR -T $TABLE_CODE -o"
-    SEND="./sender.py --rmq-dsn $RMQ_DSN --receivers $NUM_NODES --exchange tpch_data --rpc-exchange rpc --table $TABLE --db $DB --data-source stdin --flush-size $((NUM_NODES*250000))"
+    SEND="./sender.py --rmq-dsn $RMQ_DSN --receivers $NUM_NODES --exchange tpch_data --rpc-exchange rpc --table $TABLE --db $DB --data-source stdin --flush-size $((NUM_NODES*100000))"
 
     if [ -z $TOTAL_CHUNKS ] || [ "$SCALE_FACTOR" -eq 1 ]; then
         echo "Using a single chunk for $TABLE stream ID: $OFFSET"
