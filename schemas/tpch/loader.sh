@@ -49,13 +49,11 @@ run_if_exists indexes.sql
 
 psql_exec_cmd "VACUUM"
 
-psql_exec_cmd "ANALYZE region" &
-psql_exec_cmd "ANALYZE customer" &
-psql_exec_cmd "ANALYZE lineitem" &
-psql_exec_cmd "ANALYZE nation" &
-psql_exec_cmd "ANALYZE orders" &
-psql_exec_cmd "ANALYZE part" &
-psql_exec_cmd "ANALYZE partsupp" &
-psql_exec_cmd "ANALYZE supplier" &
-
-wait
+psql_exec_cmd "ANALYZE region"
+psql_exec_cmd "ANALYZE customer"
+psql_exec_cmd "ANALYZE lineitem"
+psql_exec_cmd "ANALYZE nation"
+psql_exec_cmd "ANALYZE orders"
+psql_exec_cmd "ANALYZE part"
+psql_exec_cmd "ANALYZE partsupp"
+psql_exec_cmd "ANALYZE supplier"
