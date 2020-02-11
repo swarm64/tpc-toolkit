@@ -25,7 +25,7 @@ CREATE FOREIGN TABLE part (
     p_type character varying(25) NOT NULL,
     p_size int NOT NULL,
     p_container character varying(10) NOT NULL,
-    p_retailprice double precision NOT NULL,
+    p_retailprice numeric(13,2) NOT NULL,
     p_comment character varying(23) NOT NULL
 ) SERVER swarm64da_server
 OPTIONS(optimized_columns 'p_partkey',
@@ -37,7 +37,7 @@ CREATE FOREIGN TABLE supplier (
     s_address character varying(40) NOT NULL,
     s_nationkey int NOT NULL,
     s_phone character varying(15) NOT NULL,
-    s_acctbal double precision NOT NULL,
+    s_acctbal numeric(13,2) NOT NULL,
     s_comment character varying(101) NOT NULL
 ) SERVER swarm64da_server
 OPTIONS(optimized_columns 's_suppkey',
@@ -47,7 +47,7 @@ CREATE FOREIGN TABLE partsupp (
     ps_partkey int NOT NULL,
     ps_suppkey int NOT NULL,
     ps_availqty int NOT NULL,
-    ps_supplycost double precision NOT NULL,
+    ps_supplycost numeric(13,2) NOT NULL,
     ps_comment character varying(199) NOT NULL
 ) SERVER swarm64da_server
 OPTIONS(optimized_columns 'ps_partkey, ps_suppkey',
@@ -59,7 +59,7 @@ CREATE FOREIGN TABLE customer (
     c_address character varying(40) NOT NULL,
     c_nationkey int NOT NULL,
     c_phone character varying(15) NOT NULL,
-    c_acctbal double precision NOT NULL,
+    c_acctbal numeric(13,2) NOT NULL,
     c_mktsegment character varying(10) NOT NULL,
     c_comment character varying(117) NOT NULL
 ) SERVER swarm64da_server
@@ -70,7 +70,7 @@ CREATE FOREIGN TABLE orders (
     o_orderkey bigint NOT NULL,
     o_custkey int NOT NULL,
     o_orderstatus "char" NOT NULL,
-    o_totalprice double precision NOT NULL,
+    o_totalprice numeric(13,2) NOT NULL,
     o_orderdate date NOT NULL,
     o_orderpriority character varying(15) NOT NULL,
     o_clerk character varying(15) NOT NULL,
@@ -85,10 +85,10 @@ CREATE FOREIGN TABLE lineitem (
     l_partkey int NOT NULL,
     l_suppkey int NOT NULL,
     l_linenumber int NOT NULL,
-    l_quantity double precision NOT NULL,
-    l_extendedprice double precision NOT NULL,
-    l_discount double precision NOT NULL,
-    l_tax double precision NOT NULL,
+    l_quantity numeric(13,2) NOT NULL,
+    l_extendedprice numeric(13,2) NOT NULL,
+    l_discount numeric(13,2) NOT NULL,
+    l_tax numeric(13,2) NOT NULL,
     l_returnflag "char" NOT NULL,
     l_linestatus "char" NOT NULL,
     l_shipdate date NOT NULL,
