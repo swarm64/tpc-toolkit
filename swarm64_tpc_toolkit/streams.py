@@ -62,7 +62,7 @@ class Streams:
         self.num_streams = args.streams
         self.netdata_url = args.netdata_url
         self.benchmark = benchmark
-        self.query_dir = os.path.join(self.benchmark.base_dir, 'queries', benchmark.name)
+        self.query_dir = os.path.join(self.benchmark.base_dir, 'queries')
         self.stream_offset = args.stream_offset
         self.scale_factor = args.scale_factor
 

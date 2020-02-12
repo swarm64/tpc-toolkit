@@ -30,11 +30,12 @@ if __name__ == '__main__':
         'Supply a full path to the file.'
     ))
 
-    benchmarks = [Benchmark(name=name, base_dir='.') for name in ('tpch', 'tpcds', 'ssb')]
+    benchmarks = []
     benchmarks_dir = 'benchmarks'
     try:
-        for directory in os.listdir(benchmarks_dir):
-            benchmarks.append(Benchmark(name=directory, base_dir=benchmarks_dir))
+        for directory in os.listdir('benchmarks'):
+            base_dir = os.path.join(benchmarks_dir, directory)
+            benchmarks.append(Benchmark(name=directory, base_dir=base_dir))
     except FileNotFoundError:
         pass
 
