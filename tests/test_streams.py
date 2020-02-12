@@ -25,7 +25,7 @@ def args():
 
 @pytest.fixture
 def benchmark():
-    return streams.Benchmark(name='tpch', base_dir='foo')
+    return streams.Benchmark(name='tpch', base_dir='foo/bar')
 
 
 def test_make_config_no_config_file(mocker, args, benchmark):
@@ -62,7 +62,7 @@ def test_read_sql_file(mocker, args, benchmark):
     open_patched = mocker.patch('builtins.open', mocker.mock_open(read_data='SELECT 1'))
 
     result = streams.Streams(args, benchmark).read_sql_file(1024)
-    open_patched.assert_called_with(f'{benchmark.base_dir}/queries/{benchmark.name}/1024.sql', 'r')
+    open_patched.assert_called_with(f'{benchmark.base_dir}/queries/1024.sql', 'r')
     assert result == 'SELECT 1'
 
 
@@ -93,7 +93,7 @@ def test_get_stream_sequence(mocker, args, benchmark):
     ])
 
     result = streams.Streams(args, benchmark).get_stream_sequence(2)
-    open_patched.assert_called_with(f'{benchmark.base_dir}/queries/{benchmark.name}/streams.yaml', 'r')
+    open_patched.assert_called_with(f'{benchmark.base_dir}/queries/streams.yaml', 'r')
     assert result == [2, 1, 0]
 
 
