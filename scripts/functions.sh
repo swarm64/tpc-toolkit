@@ -36,7 +36,10 @@ Usage instructions:
                         Default: 32
 
       --chunks          How many parallel data chunks to generate
-                        Default: 10"
+                        Default: 10
+
+      --data-dir        The path to the directory holding data to
+                        be ingested (if applicable)"
 }
 
 for i in "$@"
@@ -71,6 +74,10 @@ case $i in
     ;;
     --db-port=*)
     DB_PORT="${i#*=}"
+    shift
+    ;;
+    --data-dir=*)
+    DATA_DIR="${i#*=}"
     shift
     ;;
     *)

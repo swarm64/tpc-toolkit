@@ -5,6 +5,7 @@ import os
 import csv
 import time
 
+from collections import namedtuple
 from datetime import datetime
 from multiprocessing import Pool
 from natsort import natsorted
@@ -18,11 +19,14 @@ from .db import DB
 from .correctness import Correctness
 
 
+Benchmark = namedtuple('Benchmark', ['name', 'base_dir'])
+
+
 LOG = logging.getLogger()
 
 
 class Streams:
-    def __init__(self, args):
+    def __init__(self, args, benchmark):
 
         # The Output structure:
         #
@@ -57,8 +61,8 @@ class Streams:
         self.db = DB(args.dsn)
         self.num_streams = args.streams
         self.netdata_url = args.netdata_url
-        self.query_dir = os.path.join('queries', args.benchmark)
-        self.benchmark = args.benchmark
+        self.benchmark = benchmark
+        self.query_dir = os.path.join(self.benchmark.base_dir, 'queries')
         self.stream_offset = args.stream_offset
         self.scale_factor = args.scale_factor
 
@@ -114,7 +118,7 @@ class Streams:
             stream_ids = range(self.stream_offset, self.num_streams + self.stream_offset)
             if self.num_streams == 0:
                 stream_ids = [0]
-            cc = Correctness(self.scale_factor, self.benchmark)
+            cc = Correctness(self.scale_factor, self.benchmark.name)
             for query_number in results_dataframe.index:
                 for stream_id in stream_ids:
                     if results_dataframe.at[query_number, f'Stream {stream_id:02} status'] == 'OK':
