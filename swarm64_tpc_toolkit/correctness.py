@@ -7,7 +7,6 @@ from pandas.io.formats.style import Styler
 
 LOG = logging.getLogger()
 
-
 class Correctness:
     def __init__(self, scale_factor, benchmark):
         self.scale_factor = scale_factor
@@ -17,6 +16,16 @@ class Correctness:
 
         self.html = ''
         self.diff = None
+
+    @classmethod
+    def round_json(self, obj):
+        if isinstance(obj, float):
+            return '%.12g' % float('%.2f' % obj)
+        elif isinstance(obj, dict):
+            return dict((k, self.round_json(v)) for k, v in obj.items())
+        elif isinstance(obj, (list, tuple)):
+            return list(map(self.round_json, obj))
+        return obj
 
     def get_correctness_filepath(self, query_id):
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
@@ -46,7 +55,7 @@ class Correctness:
 
         # Reading Correctness results
         try:
-            correctness_result = pd.read_csv(correctness_path, float_precision='round_trip')
+            correctness_result = pd.read_csv(correctness_path)
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
             correctness_result = pd.DataFrame(columns=['col'])
@@ -56,7 +65,7 @@ class Correctness:
 
         # Reading Benchmark results
         try:
-            benchmark_result = pd.read_csv(benchmark_path, float_precision='round_trip')
+            benchmark_result = pd.read_csv(benchmark_path)
         except pd.errors.EmptyDataError:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
             benchmark_result = pd.DataFrame(columns=['col'])
@@ -65,6 +74,9 @@ class Correctness:
             LOG.debug(msg)
             self.html += f'<p>{msg}</p>'
             return 'Mismatch'
+
+        benchmark_result = benchmark_result.applymap(self.round_json)
+        correctness_result = correctness_result.applymap(self.round_json)
 
         if self.has_differences(benchmark_result, correctness_result):
             self.html += Correctness.to_html(self.diff,
