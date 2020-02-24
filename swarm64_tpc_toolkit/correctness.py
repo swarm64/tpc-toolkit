@@ -17,16 +17,6 @@ class Correctness:
         self.html = ''
         self.diff = None
 
-    @classmethod
-    def round_json(self, obj):
-        if isinstance(obj, float):
-            return '%.12g' % float('%.2f' % obj)
-        elif isinstance(obj, dict):
-            return dict((k, self.round_json(v)) for k, v in obj.items())
-        elif isinstance(obj, (list, tuple)):
-            return list(map(self.round_json, obj))
-        return obj
-
     def get_correctness_filepath(self, query_id):
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
@@ -36,14 +26,20 @@ class Correctness:
         if first_df.empty != second_df.empty:
             return True
 
-        diff = first_df.merge(second_df, indicator='source', how='outer')
-        self.diff = diff[diff['source'] != 'both']
-        self.diff['source'] = self.diff['source'].apply(
-            lambda x: 'benchmark results' if x == 'left_only' else 'correctness results')
-        diff_rows_count = self.diff.shape[0]
+        first_df = first_df.round(2)
+        second_df = second_df.round(2)
 
-        if diff_rows_count > 0:
-            return True
+        for column in first_df:
+            a = first_df[column]
+            b = second_df[column]
+
+            if a.dtype == 'float64':
+                if not numpy.isclose(a, b).all():
+                    return True
+
+            else:
+                if not a.equals(b):
+                    return True
 
         return False
 
@@ -74,9 +70,6 @@ class Correctness:
             LOG.debug(msg)
             self.html += f'<p>{msg}</p>'
             return 'Mismatch'
-
-        benchmark_result = benchmark_result.applymap(self.round_json)
-        correctness_result = correctness_result.applymap(self.round_json)
 
         if self.has_differences(benchmark_result, correctness_result):
             self.html += Correctness.to_html(self.diff,
