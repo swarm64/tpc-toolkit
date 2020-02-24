@@ -34,6 +34,8 @@ class Correctness:
             b = second_df[column]
 
             if a.dtype == 'float64':
+                # absolute(a - b) <= (atol + rtol * absolute(b))
+                # current tolerances: atol=1e-08, rtol=1e-05
                 if not numpy.isclose(a, b).all():
                     return True
 
