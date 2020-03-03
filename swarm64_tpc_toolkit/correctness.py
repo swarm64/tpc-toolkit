@@ -7,7 +7,6 @@ from pandas.io.formats.style import Styler
 
 LOG = logging.getLogger()
 
-
 class Correctness:
     def __init__(self, scale_factor, benchmark):
         self.scale_factor = scale_factor
@@ -27,14 +26,21 @@ class Correctness:
         if first_df.empty != second_df.empty:
             return True
 
-        diff = first_df.merge(second_df, indicator='source', how='outer')
-        self.diff = diff[diff['source'] != 'both']
-        self.diff['source'] = self.diff['source'].apply(
-            lambda x: 'benchmark results' if x == 'left_only' else 'correctness results')
-        diff_rows_count = self.diff.shape[0]
+        first_df = first_df.round(2)
+        second_df = second_df.round(2)
 
-        if diff_rows_count > 0:
-            return True
+        for column in first_df:
+            a = first_df[column].sort_values()
+            b = second_df[column].sort_values()
+
+            if a.dtype == 'float64':
+                # absolute(a - b) <= (atol + rtol * absolute(b))
+                if not numpy.isclose(a, b, rtol=1e-12, atol=0).all():
+                    return True
+
+            else:
+                if not a.equals(b):
+                    return True
 
         return False
 
