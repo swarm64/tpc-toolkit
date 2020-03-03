@@ -35,8 +35,7 @@ class Correctness:
 
             if a.dtype == 'float64':
                 # absolute(a - b) <= (atol + rtol * absolute(b))
-                # current tolerances: atol=1e-08, rtol=1e-05
-                if not numpy.isclose(a, b).all():
+                if not numpy.isclose(a, b, rtol=1e-12, atol=0).all():
                     return True
 
             else:
