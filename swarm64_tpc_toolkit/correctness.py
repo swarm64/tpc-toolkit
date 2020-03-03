@@ -30,8 +30,8 @@ class Correctness:
         second_df = second_df.round(2)
 
         for column in first_df:
-            a = first_df[column]
-            b = second_df[column]
+            a = first_df[column].sort_values()
+            b = second_df[column].sort_values()
 
             if a.dtype == 'float64':
                 # absolute(a - b) <= (atol + rtol * absolute(b))
