@@ -16,6 +16,7 @@ DB_HOST="localhost"
 DB_PORT=5432
 NUM_PARTITIONS=32
 CHUNKS=10
+JOBS=4
 
 function print_help {
 echo "
@@ -39,7 +40,10 @@ Usage instructions:
                         Default: 10
 
       --data-dir        The path to the directory holding data to
-                        be ingested (if applicable)"
+                        be ingested (if applicable)
+
+      --jobs            Max amount of parallel jobs to start.
+                        Default: 8"
 }
 
 for i in "$@"
@@ -80,6 +84,10 @@ case $i in
     DATA_DIR="${i#*=}"
     shift
     ;;
+    --jobs=*)
+    JOBS="${i#*=}"
+    shift
+    ;;
     *)
         echo "Unknown option $i"
         print_help
@@ -93,6 +101,25 @@ if [ "$DB_HOST" = "socket" ]; then
 else
     PSQL="psql -U postgres -h ${DB_HOST} -p ${DB_PORT}"
 fi
+
+function measure  {
+    WHAT=$1
+    time_start=`date +%s`
+    "${@:2}"
+    time_end=`date +%s`
+    total_time=$((time_end - time_start))
+    echo "$WHAT: $total_time seconds."
+}
+
+function execute_parallel {
+    for task in "$@"; do
+        set +e
+        ((i=i%JOBS)); ((i++==0)) && wait
+        $task &
+        set -e
+    done
+    wait
+}
 
 function check_and_fail {
     if [ -z ${!1+x} ]; then
@@ -145,6 +172,14 @@ function psql_exec_file {
 
 function psql_exec_cmd {
     $PSQL -d $DB -c "$1"
+}
+
+function psql_analyze {
+    psql_exec_cmd "ANALYZE $1"
+}
+
+function psql_vacuum {
+    psql_exec_cmd "VACUUM"
 }
 
 function prepare_db {

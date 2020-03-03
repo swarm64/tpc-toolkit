@@ -27,39 +27,37 @@ function ingest {
     fi
 }
 
+function run {
+    execute_parallel \
+        "ingest r region" \
+        "ingest c customer $CHUNKS" \
+        "ingest L lineitem $CHUNKS" \
+        "ingest n nation" \
+        "ingest O orders $CHUNKS" \
+        "ingest P part $CHUNKS" \
+        "ingest S partsupp $CHUNKS" \
+        "ingest s supplier $CHUNKS"
+
+    run_if_exists primary-keys.sql
+    run_if_exists foreign-keys.sql
+    run_if_exists indexes.sql
+
+    psql_vacuum
+
+    execute_parallel \
+        "psql_analyze region" \
+        "psql_analyze customer" \
+        "psql_analyze lineitem" \
+        "psql_analyze nation" \
+        "psql_analyze orders" \
+        "psql_analyze part" \
+        "psql_analyze partsupp" \
+        "psql_analyze supplier"
+}
+
 wait_for_pg
 
 prepare_db UTF8
 deploy_schema "$SCHEMA" "$NUM_PARTITIONS"
 
-ingest_time_start=`date +%s`
-
-ingest r region &
-ingest c customer $CHUNKS &
-ingest L lineitem $CHUNKS &
-ingest n nation &
-ingest O orders $CHUNKS &
-ingest P part $CHUNKS &
-ingest S partsupp $CHUNKS &
-ingest s supplier $CHUNKS &
-
-wait
-
-run_if_exists primary-keys.sql
-run_if_exists foreign-keys.sql
-run_if_exists indexes.sql
-
-psql_exec_cmd "VACUUM"
-
-psql_exec_cmd "ANALYZE region"
-psql_exec_cmd "ANALYZE customer"
-psql_exec_cmd "ANALYZE lineitem"
-psql_exec_cmd "ANALYZE nation"
-psql_exec_cmd "ANALYZE orders"
-psql_exec_cmd "ANALYZE part"
-psql_exec_cmd "ANALYZE partsupp"
-psql_exec_cmd "ANALYZE supplier"
-
-ingest_time_end=`date +%s`
-ingest_time=$((ingest_time_end - ingest_time_start))
-echo "Ingest Time: $ingest_time seconds."
+measure "Ingest runtime" run
