@@ -152,8 +152,11 @@ class Streams:
             results_df = self.save_to_dataframe(results)
 
             if self.netdata_output_file:
-                netdata = Netdata(self.config['netdata'])
-                netdata.write_stats(results[0][0], self.netdata_output_file)
+                if self.num_streams <= 1:
+                    netdata = Netdata(self.config['netdata'])
+                    netdata.write_stats(results[0][0], self.netdata_output_file)
+                else:
+                    LOG.info('Running more than one stream. Not retrieving netdata stats.')
 
             results_with_correctness = self.add_correctness(results_df)
             self._print_results(results_with_correctness)
