@@ -30,13 +30,12 @@ class Correctness:
         second_df = second_df.round(2)
 
         for column in first_df:
-            a = first_df[column]
-            b = second_df[column]
+            a = first_df[column].sort_values()
+            b = second_df[column].sort_values()
 
             if a.dtype == 'float64':
                 # absolute(a - b) <= (atol + rtol * absolute(b))
-                # current tolerances: atol=1e-08, rtol=1e-05
-                if not numpy.isclose(a, b).all():
+                if not numpy.isclose(a, b, rtol=1e-12, atol=0).all():
                     return True
 
             else:
@@ -53,7 +52,7 @@ class Correctness:
 
         # Reading Correctness results
         try:
-            correctness_result = pd.read_csv(correctness_path)
+            correctness_result = pd.read_csv(correctness_path, float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
             correctness_result = pd.DataFrame(columns=['col'])
@@ -63,7 +62,7 @@ class Correctness:
 
         # Reading Benchmark results
         try:
-            benchmark_result = pd.read_csv(benchmark_path)
+            benchmark_result = pd.read_csv(benchmark_path, float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
             benchmark_result = pd.DataFrame(columns=['col'])
