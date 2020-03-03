@@ -52,7 +52,7 @@ class Correctness:
 
         # Reading Correctness results
         try:
-            correctness_result = pd.read_csv(correctness_path)
+            correctness_result = pd.read_csv(correctness_path, float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
             correctness_result = pd.DataFrame(columns=['col'])
@@ -62,7 +62,7 @@ class Correctness:
 
         # Reading Benchmark results
         try:
-            benchmark_result = pd.read_csv(benchmark_path)
+            benchmark_result = pd.read_csv(benchmark_path, float_precision='round_trip')
         except pd.errors.EmptyDataError:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
             benchmark_result = pd.DataFrame(columns=['col'])
