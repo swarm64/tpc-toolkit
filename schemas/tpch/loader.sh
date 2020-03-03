@@ -32,6 +32,8 @@ wait_for_pg
 prepare_db UTF8
 deploy_schema "$SCHEMA" "$NUM_PARTITIONS"
 
+ingest_time_start=`date +%s`
+
 ingest r region &
 ingest c customer $CHUNKS &
 ingest L lineitem $CHUNKS &
@@ -49,13 +51,15 @@ run_if_exists indexes.sql
 
 psql_exec_cmd "VACUUM"
 
-psql_exec_cmd "ANALYZE region" &
-psql_exec_cmd "ANALYZE customer" &
-psql_exec_cmd "ANALYZE lineitem" &
-psql_exec_cmd "ANALYZE nation" &
-psql_exec_cmd "ANALYZE orders" &
-psql_exec_cmd "ANALYZE part" &
-psql_exec_cmd "ANALYZE partsupp" &
-psql_exec_cmd "ANALYZE supplier" &
+psql_exec_cmd "ANALYZE region"
+psql_exec_cmd "ANALYZE customer"
+psql_exec_cmd "ANALYZE lineitem"
+psql_exec_cmd "ANALYZE nation"
+psql_exec_cmd "ANALYZE orders"
+psql_exec_cmd "ANALYZE part"
+psql_exec_cmd "ANALYZE partsupp"
+psql_exec_cmd "ANALYZE supplier"
 
-wait
+ingest_time_end=`date +%s`
+ingest_time=$((ingest_time_end - ingest_time_start))
+echo "Ingest Time: $ingest_time seconds."
