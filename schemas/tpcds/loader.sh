@@ -51,6 +51,8 @@ wait_for_pg
 prepare_db UTF8
 deploy_schema "$SCHEMA" "$NUM_PARTITIONS"
 
+ingest_time_start=`date +%s`
+
 ingest customer_address &
 ingest customer_demographics &
 ingest date_dim &
@@ -102,3 +104,7 @@ psql_exec_cmd "ANALYZE inventory"
 psql_exec_cmd "ANALYZE web_sales"
 psql_exec_cmd "ANALYZE catalog_sales"
 psql_exec_cmd "ANALYZE store_sales"
+
+ingest_time_end=`date +%s`
+ingest_time=$((ingest_time_end - ingest_time_start))
+echo "Ingest Time: $ingest_time seconds."
