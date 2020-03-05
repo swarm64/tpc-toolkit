@@ -23,14 +23,7 @@ class PrepareBenchmark(PrepareBenchmarkFactory):
         'partsupp': 'S',
         'supplier': 's'
     }
-# ingest r region &
-# ingest c customer $CHUNKS &
-# ingest L lineitem $CHUNKS &
-# ingest n nation &
-# ingest O orders $CHUNKS &
-# ingest P part $CHUNKS &
-# ingest S partsupp $CHUNKS &
-# ingest s supplier $CHUNKS &
+
     def ingest(self, table):
         use_chunks = table not in ('nation', 'region')
 
@@ -45,26 +38,3 @@ class PrepareBenchmark(PrepareBenchmarkFactory):
                     chunk in range(1, total_chunks + 1)]
 
         return [f'{dbgen_cmd} | {psql_copy}']
-        # function ingest {
-        #     TABLE_CODE=$1
-        #     TABLE=$2
-        #     TOTAL_CHUNKS=$3
-
-        #     echo "Copying $BENCHMARK SF${SCALE_FACTOR} data to ${TABLE}"
-
-        #     PSQL_COPY="\COPY $TABLE FROM STDIN WITH DELIMITER '|'"
-        #     DBGEN="./dbgen -s $SCALE_FACTOR -T $TABLE_CODE -o"
-
-        #     if [ -z $TOTAL_CHUNKS ] || [ "$SCALE_FACTOR" -eq 1 ]; then
-        #         echo "Using a single chunk."
-        #         $DBGEN | psql_exec_cmd "$PSQL_COPY"
-        #     else
-        #         echo "Using multiple chunks."
-        #         for CHUNK in `seq 1 $TOTAL_CHUNKS`; do
-        #             echo "$TABLE: generating $CHUNK of $TOTAL_CHUNKS"
-        #             DBGEN_CMD="$DBGEN -S $CHUNK -C $TOTAL_CHUNKS"
-        #             $DBGEN_CMD | psql_exec_cmd "$PSQL_COPY" &
-        #         done
-        #         wait
-        #     fi
-        # }
