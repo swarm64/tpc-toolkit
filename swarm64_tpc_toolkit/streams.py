@@ -71,7 +71,7 @@ class Streams:
     @staticmethod
     def _make_config(args, benchmark):
         config = {}
-        config_file = args.config or "configs/{}/default.yaml".format(benchmark.name)
+        config_file = args.config or f'benchmarks/{benchmark.name}/configs/default.yaml'
 
         with open(config_file, 'r') as conf_file:
             config = yaml.load(conf_file, Loader=yaml.Loader)
