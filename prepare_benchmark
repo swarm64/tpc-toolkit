@@ -46,6 +46,9 @@ if __name__ == '__main__':
         'Scale factor benchmarks which require one (for instance TPC-DS/H, SSB).'
     ))
 
+    args_to_parse.add_argument('--schema', required=True)
+    args_to_parse.add_argument('--max-jobs', type=int, default=8)
+
     args = args_to_parse.parse_args()
     for benchmark in benchmarks:
         if benchmark.name == args.benchmark:
@@ -58,4 +61,4 @@ if __name__ == '__main__':
         os.path.join(benchmark_to_run.base_dir, 'prepare.py'))
     prepare = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(prepare)
-    prepare.PrepareBenchmark(args).run()
+    prepare.PrepareBenchmark(args, benchmark).run()

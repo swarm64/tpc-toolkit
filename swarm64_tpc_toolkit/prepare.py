@@ -1,54 +1,87 @@
 
-from multiprocessing.pool import Pool
-from shlex import split
+import os
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from subprocess import Popen
+from urllib.parse import urlparse
+
+from .dbconn import DBConn
 
 
 class PrepareBenchmarkFactory:
     TABLES = []
 
-    def __init__(self, args):
+    def __init__(self, args, benchmark):
         self.args = args
-        self.pool = Pool(processes=10)
+        self.benchmark = benchmark
+        self.schema_dir = os.path.join(benchmark.base_dir, 'schemas', args.schema)
+        assert os.path.isdir(self.schema_dir), 'Schema does not exist'
 
-    @classmethod
-    def _run_shell_task(cls, task):
-        cmd = split(task)
-        # p = Popen(cmd)
-        # p.wait()
-        print(cmd)
+    def _run_shell_task(self, task):
+        p = Popen(task, cwd=self.benchmark.base_dir, shell=True)
+        p.wait()
+        assert p.returncode == 0, 'Shell task did not finish with exit code 0'
+
+    def _run_tasks_parallel(self, tasks):
+        with ThreadPoolExecutor(max_workers=self.args.max_jobs) as executor:
+            futures = [executor.submit(self._run_shell_task, task) for task in tasks]
+            for completed_future in as_completed(futures):
+                exc = completed_future.exception()
+                if exc:
+                    print(f'Task threw an exception: {exc}')
+                    for future in futures:
+                        future.cancel()
 
     def run(self):
+        print('Preparing DB')
         self.prepare_db()
 
+        print('Ingesting data')
         ingest_tasks = []
         for table in PrepareBenchmarkFactory.TABLES:
-            ingest_tasks.extend(self.ingest(table))
+            tasks = self.ingest(table)
+            assert isinstance(tasks, list), 'Returned object is not a list'
+            ingest_tasks.extend(tasks)
+        self._run_tasks_parallel(ingest_tasks)
 
-        tasks = self.pool.map_async(PrepareBenchmarkFactory._run_shell_task, ingest_tasks)
-        result = tasks.get()
-        print(result)
-
+        print('Adding indices')
         self.add_indexes()
+
+        print('VACUUM-ANALYZE')
         self.vacuum_analyze()
 
     def prepare_db(self):
-        pass
+        dsn_url = urlparse(self.args.dsn)
+        dbname = dsn_url.path[1:]
+
+        with DBConn(f'{dsn_url.scheme}://{dsn_url.netloc}/postgres') as conn:
+            print(f'Deleting {dbname}')
+            conn.cursor.execute(f'DROP DATABASE IF EXISTS {dbname}')
+            print(f'Creating {dbname}')
+            conn.cursor.execute(f'CREATE DATABASE {dbname}')
+
+        with DBConn(self.args.dsn) as conn:
+            print(f'Loading schema')
+            schema_path = os.path.join(self.schema_dir, 'schema.sql')
+            with open(schema_path, 'r') as schema:
+                conn.cursor.execute(schema.read())
 
     def ingest(self, table):
         return []
 
     def add_indexes(self):
-# run_if_exists primary-keys.sql
-# run_if_exists foreign-keys.sql
-# run_if_exists indexes.sql
-        pass
+        for sql_file in ('primary-keys.sql', 'foreign-keys.sql', 'indexes.sql'):
+            sql_file_path = os.path.join(self.schema_dir, sql_file)
+            if not os.path.isfile(sql_file_path):
+                continue
+
+            with DBConn(self.args.dsn) as conn:
+                print(f'Applying {sql_file_path}')
+                with open(sql_file_path, 'r') as sql_file:
+                    conn.cursor.execute(sql_file.read())
 
     def vacuum_analyze(self):
-        PrepareBenchmarkFactory._run_shell_task(f'psql {self.args.dsn} -c "VACUUM"')
-
+        self._run_shell_task(f'psql {self.args.dsn} -c "VACUUM"')
         analyze_tasks = [f'psql {self.args.dsn} -c "ANALYZE {table}"' for table in
                          PrepareBenchmarkFactory.TABLES]
-        tasks = self.pool.map_async(PrepareBenchmarkFactory._run_shell_task, analyze_tasks)
-        result = tasks.get()
-        print(result)
+        self._run_tasks_parallel(analyze_tasks)
