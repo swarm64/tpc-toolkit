@@ -18,7 +18,7 @@ class PrepareBenchmarkFactory:
         assert os.path.isdir(self.schema_dir), 'Schema does not exist'
 
     def _run_shell_task(self, task):
-        p = Popen(task, cwd=self.benchmark.base_dir, shell=True)
+        p = Popen(task, cwd=self.benchmark.base_dir, shell=True, executable='/bin/bash')
         p.wait()
         assert p.returncode == 0, 'Shell task did not finish with exit code 0'
 
@@ -39,7 +39,7 @@ class PrepareBenchmarkFactory:
         print('Ingesting data')
         ingest_tasks = []
         for table in PrepareBenchmarkFactory.TABLES:
-            tasks = self.ingest(table)
+            tasks = self.get_ingest_tasks(table)
             assert isinstance(tasks, list), 'Returned object is not a list'
             ingest_tasks.extend(tasks)
         self._run_tasks_parallel(ingest_tasks)
@@ -66,7 +66,7 @@ class PrepareBenchmarkFactory:
             with open(schema_path, 'r') as schema:
                 conn.cursor.execute(schema.read())
 
-    def ingest(self, table):
+    def get_ingest_tasks(self, table):
         return []
 
     def add_indexes(self):
@@ -78,7 +78,9 @@ class PrepareBenchmarkFactory:
             with DBConn(self.args.dsn) as conn:
                 print(f'Applying {sql_file_path}')
                 with open(sql_file_path, 'r') as sql_file:
-                    conn.cursor.execute(sql_file.read())
+                    sql = sql_file.read()
+                    if sql:
+                        conn.cursor.execute(sql)
 
     def vacuum_analyze(self):
         self._run_shell_task(f'psql {self.args.dsn} -c "VACUUM"')

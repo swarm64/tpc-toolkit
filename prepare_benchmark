@@ -46,6 +46,7 @@ if __name__ == '__main__':
         'Scale factor benchmarks which require one (for instance TPC-DS/H, SSB).'
     ))
 
+    args_to_parse.add_argument('--chunks', type=int, default=10)
     args_to_parse.add_argument('--schema', required=True)
     args_to_parse.add_argument('--max-jobs', type=int, default=8)
 
