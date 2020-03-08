@@ -151,9 +151,10 @@ class Streams:
             totalstop = time.perf_counter()
             results_df = self.save_to_dataframe(results)
 
-            if self.netdata_output_file:
+            netdata_config = self.config.get('netdata')
+            if netdata_config and self.netdata_output_file:
                 if self.num_streams <= 1:
-                    netdata = Netdata(self.config['netdata'])
+                    netdata = Netdata(netdata_config)
                     netdata.write_stats(results[0][0], self.netdata_output_file)
                 else:
                     LOG.info('Running more than one stream. Not retrieving netdata stats.')
