@@ -89,12 +89,7 @@ class Reporting:
 
         netdata_config = self.config.get('netdata')
         if netdata_config and self.netdata_output_file:
-            pass
-            # if self.num_streams <= 1:
-            #     netdata = Netdata(netdata_config)
-            #     netdata.write_stats(df, self.netdata_output_file)
-            # else:
-            #     LOG.info('Running more than one stream. Not retrieving netdata stats.')
+            Netdata(netdata_config).write_stats(df, self.netdata_output_file)
 
         if self.scale_factor:
             df = self._check_correctness(df)
@@ -102,7 +97,8 @@ class Reporting:
         self._print_results(df)
 
         total_runtime = df['timestamp_stop'].max() - df['timestamp_start'].min()
-        print(f'\nTotal runtime: {total_runtime} ({total_runtime.total_seconds()}s)')
+        total_runtime_seconds = total_runtime.total_seconds()
+        print(f'\nTotal runtime: {total_runtime} ({total_runtime_seconds:.2f}s)')
 
     def _save_explain_plan(self, query_metric):
         plan_file_name = query_metric.make_file_name('txt')

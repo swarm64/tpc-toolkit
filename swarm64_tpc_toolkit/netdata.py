@@ -33,16 +33,30 @@ class Netdata:
 
         return data
 
-    def write_stats(self, results, output):
+    def _write_stats_impl(self, df, output):
         data = {}
-        for name, result in results.items():
-            # timerange = (int(result.start), int(result.stop))
-            timerange = (result[0], result[1])
-            df = self._get_data(timerange)
-            data[name] = df.agg(self.metrics)
+
+        def get_timestamp(value):
+            return int(value.timestamp())
+
+        for _, row in df.iterrows():
+            timerange = (
+                get_timestamp(row['timestamp_start']),
+                get_timestamp(row['timestamp_stop'])
+            )
+
+            netdata_df = self._get_data(timerange)
+            data[name] = netdata_df.agg(self.metrics)
 
         with open(output, 'w') as output_file:
             for name, df in data.items():
                 output_file.write(f'{name}')
                 df.to_csv(output_file)
                 output_file.write('\n')
+
+    def write_stats(self, df, output):
+        if len(df['stream_id'].unique()) == 1:
+            self._write_stats_impl(df, output)
+
+        else:
+            LOG.info('Running more than one stream. Not retrieving netdata stats.')

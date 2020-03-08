@@ -80,9 +80,7 @@ class Streams:
             self.db.reset_config()
             self.db.apply_config(self.config.get('dbconfig', {}))
 
-            totalstart = time.perf_counter()
             self.run_streams(reporting_queue)
-            totalstop = time.perf_counter()
             self.reporting.run_report(reporting_queue)
 
         except KeyboardInterrupt:
@@ -129,6 +127,9 @@ class Streams:
 
             LOG.info(f'running  {pretext}.')
             timing, query_result, plan = self._run_query(stream_id, query_id)
+
+            runtime = timing.stop - timing.start
+            LOG.info(f'finished {pretext}: {runtime:.2f}s')
 
             reporting_queue.put(QueryMetric(
                 stream_id=stream_id,
