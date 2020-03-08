@@ -88,8 +88,12 @@ class Reporting:
         df = df.reset_index(drop=True)
 
         netdata_config = self.config.get('netdata')
-        if netdata_config and self.netdata_output_file:
-            Netdata(netdata_config).write_stats(df, self.netdata_output_file)
+        if netdata_config:
+            netdata = Netdata(netdata_config)
+            if self.netdata_output_file:
+                netdata.write_stats(df, self.netdata_output_file)
+
+            # netdata_df = netdata.get_system_stats(df, 5)
 
         if self.scale_factor:
             df = self._check_correctness(df)

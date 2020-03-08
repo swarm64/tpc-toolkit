@@ -13,14 +13,15 @@ class Netdata:
         self.metrics = config['metrics']
         self.charts = config['charts']
 
-    def _get_data(self, timerange):
+    def _get_data(self, timerange, resolution):
         data = pandas.DataFrame()
         for chart, dimensions in self.charts.items():
             result = requests.get(self.url, params={
                 'chart': chart,
                 'after': timerange[0],
                 'before': timerange[1],
-                'dimensions': ','.join(dimensions)
+                'dimensions': ','.join(dimensions),
+                'gtime': resolution
             }).json()
 
             columns = ['time']
@@ -31,21 +32,24 @@ class Netdata:
             df = df.set_index('time')
             data = pandas.concat([data, df], axis=1)
 
+        data.index = pandas.to_datetime(data.index, unit='s')
+
         return data
+
+    @classmethod
+    def make_timestamp(cls, value):
+        return int(value.timestamp())
 
     def _write_stats_impl(self, df, output):
         data = {}
 
-        def get_timestamp(value):
-            return int(value.timestamp())
-
         for _, row in df.iterrows():
             timerange = (
-                get_timestamp(row['timestamp_start']),
-                get_timestamp(row['timestamp_stop'])
+                Netdata.make_timestamp(row['timestamp_start']),
+                Netdata.make_timestamp(row['timestamp_stop'])
             )
 
-            netdata_df = self._get_data(timerange)
+            netdata_df = self._get_data(timerange, 1)
             data[name] = netdata_df.agg(self.metrics)
 
         with open(output, 'w') as output_file:
@@ -60,3 +64,8 @@ class Netdata:
 
         else:
             LOG.info('Running more than one stream. Not retrieving netdata stats.')
+
+    def get_system_stats(self, df, resolution):
+        ts_from = Netdata.make_timestamp(df['timestamp_start'].min())
+        ts_to = Netdata.make_timestamp(df['timestamp_stop'].max())
+        return self._get_data((ts_from, ts_to), resolution).sort_index()
