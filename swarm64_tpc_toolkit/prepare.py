@@ -58,7 +58,7 @@ class PrepareBenchmarkFactory:
             print(f'Deleting {dbname}')
             conn.cursor.execute(f'DROP DATABASE IF EXISTS {dbname}')
             print(f'Creating {dbname}')
-            conn.cursor.execute(f'CREATE DATABASE {dbname}')
+            conn.cursor.execute(f"CREATE DATABASE {dbname} TEMPLATE template0 ENCODING 'UTF-8'")
 
         with DBConn(self.args.dsn) as conn:
             print(f'Loading schema')

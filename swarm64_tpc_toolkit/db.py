@@ -64,7 +64,7 @@ class DB:
                 query_result = None
                 self.plan = DB.get_explain_output(conn.conn, sql)
 
-            except (psycopg2.InternalError, psycopg2.Error):
+            except (psycopg2.InternalError, psycopg2.Error, UnicodeDecodeError):
                 LOG.exception('Ignoring psycopg2 Error')
                 query_result = None
                 self.plan = DB.get_explain_output(conn.conn, sql)
