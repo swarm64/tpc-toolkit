@@ -44,6 +44,7 @@ class Streams:
         self.output = args.output
         self.csv_file = args.csv_file
         if 'csv' in self.output:
+            Path(os.path.dirname(self.csv_file)).mkdir(parents=True, exist_ok=True)
             Path(self.csv_file).touch()
 
         self.results_root_dir = 'results'
