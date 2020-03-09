@@ -58,9 +58,8 @@ Start a benchmark:
         --dsn postgresql://postgres@localhost/<target-db> \
         --benchmark <tpch|tpcds|ssb>
 
-This runs the benchmark without any query runtime restriction. Ideally, use the
-`--timeout` parameter to limit query runtime. Queries might otherwise run for
-several hours or longer.
+This runs the benchmark with a 15 minute per query runtime restriction. You can
+use the `--timeout` parameter to adjust this limit.
 
 ### Required Parameters
 
@@ -74,27 +73,31 @@ several hours or longer.
 | Parameter  | Description                                        |
 | ---------- | -------------------------------------------------- |
 | `config`   | Path to additional YAML configuration file.        |
-| `timeout`  | The maximum time a query may run, such as `15min`. |
+| `timeout`  | The maximum time a query may run, such as `30min`. |
 
 
 # Test parameterization with additional YAML configuration
 
-You can create an additional configuration file to control test execution more
-granularly. An example YAML file is as follows:
+You can modify the existing configuration files located under the configs
+directory. Per default, the tests loads the respective `default.yaml` 
+configuration file.
+Alternatively, you can create an additional configuration file to control 
+test execution more granularly. An example YAML file for the TPC-H benchmark 
+is as follows:
 
     timeout: 30min
     ignore:
+      - 18
       - 20
       - 21
-      - 22
 
     dbconfig:
       max_parallel_workers: 96
       max_parallel_workers_per_gather: 32
 
 To use this file, pass the `--config=<path-to-file>` argument to the test
-executor. In this example, the query timeout is set to `30min`. Queries 20, 21,
-and 22 will not execute. Additionally, the database parameters
+executor. In this example, the query timeout is set to `30min`. Queries 18, 20,
+and 21 will not execute. Additionally, the database parameters
 `max_parallel_workers` will change to 96 and `max_parallel_workers_per_gather`
 will change to `32`. Any change to the database configuration is applied before
 the benchmark starts and are reverted after the benchmark completes.

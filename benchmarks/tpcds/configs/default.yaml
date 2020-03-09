@@ -25,7 +25,3 @@ ignore:
   - 87
   - 2
   - 4
-
-dbconfig:
-  max_parallel_workers: 36
-  max_parallel_workers_per_gather: 36

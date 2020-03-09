@@ -58,7 +58,7 @@ class Streams:
             except OSError as exc:
                 LOG.exception(f'Could not create directory {self.results_root_dir}')
 
-        self.config = Streams._make_config(args)
+        self.config = Streams._make_config(args, benchmark)
         self.db = DB(args.dsn)
         self.num_streams = args.streams
         self.netdata_url = args.netdata_url
@@ -70,11 +70,12 @@ class Streams:
         self.explain_analyze = args.explain_analyze
 
     @staticmethod
-    def _make_config(args):
+    def _make_config(args, benchmark):
         config = {}
-        if args.config:
-            with open(args.config, 'r') as config_file:
-                config = yaml.load(config_file, Loader=yaml.Loader)
+        config_file = args.config or f'benchmarks/{benchmark.name}/configs/default.yaml'
+
+        with open(config_file, 'r') as conf_file:
+            config = yaml.load(conf_file, Loader=yaml.Loader)
 
         if args.timeout:
             config['timeout'] = args.timeout
