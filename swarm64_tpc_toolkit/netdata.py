@@ -40,7 +40,7 @@ class Netdata:
     def make_timestamp(cls, value):
         return int(value.timestamp())
 
-    def _write_stats_impl(self, df, output):
+    def _get_netdata_per_query(self, df, output):
         data = {}
 
         for _, row in df.iterrows():
@@ -52,20 +52,24 @@ class Netdata:
             netdata_df = self._get_data(timerange, 1)
             data[name] = netdata_df.agg(self.metrics)
 
-        with open(output, 'w') as output_file:
-            for name, df in data.items():
-                output_file.write(f'{name}')
-                df.to_csv(output_file)
-                output_file.write('\n')
-
-    def write_stats(self, df, output):
-        if len(df['stream_id'].unique()) == 1:
-            self._write_stats_impl(df, output)
-
-        else:
-            LOG.info('Running more than one stream. Not retrieving netdata stats.')
+        return data
 
     def get_system_stats(self, df, resolution):
         ts_from = Netdata.make_timestamp(df['timestamp_start'].min())
         ts_to = Netdata.make_timestamp(df['timestamp_stop'].max())
         return self._get_data((ts_from, ts_to), resolution).sort_index()
+
+    def write_stats(self, df, output):
+        if len(df['stream_id'].unique()) == 1:
+            data = self._get_netdata_per_query(df, output)
+
+        else:
+            LOG.info('Running more than one stream. Netdata stats are written '
+                     'out without analysis.')
+            data = {'all': self.get_system_stats(df, 1)}
+
+        with open(output, 'w') as output_file:
+            for name, netdata_df in data.items():
+                output_file.write(f'{name}')
+                netdata_df.to_csv(output_file)
+                output_file.write('\n')

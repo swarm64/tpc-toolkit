@@ -93,6 +93,7 @@ class Reporting:
             if self.netdata_output_file:
                 netdata.write_stats(df, self.netdata_output_file)
 
+            # For later when writing to the DB
             # netdata_df = netdata.get_system_stats(df, 5)
 
         if self.scale_factor:
