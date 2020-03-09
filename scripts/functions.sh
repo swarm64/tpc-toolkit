@@ -16,6 +16,7 @@ DB_HOST="localhost"
 DB_PORT=5432
 NUM_PARTITIONS=32
 CHUNKS=10
+MAX_JOBS=8
 
 function print_help {
 echo "
@@ -39,7 +40,11 @@ Usage instructions:
                         Default: 10
 
       --data-dir        The path to the directory holding data to
-                        be ingested (if applicable)"
+                        be ingested (if applicable)
+
+      --max-jobs        Limits the overall amount of parallelism.
+                        Default: 8"
+
 }
 
 for i in "$@"
@@ -78,6 +83,10 @@ case $i in
     ;;
     --data-dir=*)
     DATA_DIR="${i#*=}"
+    shift
+    ;;
+    --max-jobs=*)
+    MAX_JOBS="${i#*=}"
     shift
     ;;
     *)

@@ -6,7 +6,9 @@ cd ../../
 source ./scripts/functions.sh
 
 ./prepare_benchmark \
-    --dsn=postgresql://postgres@${DB_HOST}/${DB} \
+    --dsn=postgresql://postgres@${DB_HOST}:${DB_PORT}/${DB} \
     --scale-factor=${SCALE_FACTOR} \
     --schema=${SCHEMA} \
+    --chunks=${CHUNKS} \
+    --max-jobs=${MAX_JOBS} \
     --benchmark=tpch

@@ -41,14 +41,23 @@ if __name__ == '__main__':
         'Which benchmark to run.'
     ))
 
+    scale_factor_required = any(x in sys.argv for x in ('tpcds', 'tpch', 'ssb'))
     args_to_parse.add_argument('--scale-factor', type=int, default=None,
-                               required=('tpcds', 'tpch', 'ssb') in sys.argv, help=(
-        'Scale factor benchmarks which require one (for instance TPC-DS/H, SSB).'
+                               required=scale_factor_required, help=(
+        'Scale factor for specific benchmarks (e.g. TPC-DS/H, SSB).'
     ))
 
-    args_to_parse.add_argument('--chunks', type=int, default=10)
-    args_to_parse.add_argument('--schema', required=True)
-    args_to_parse.add_argument('--max-jobs', type=int, default=8)
+    args_to_parse.add_argument('--chunks', type=int, default=10, help=(
+        'How many chunks to generate if a data generator is involved.'
+    ))
+
+    args_to_parse.add_argument('--schema', required=True, help=(
+        'Which schema of the benchmark to use.'
+    ))
+
+    args_to_parse.add_argument('--max-jobs', type=int, default=8, help=(
+        'Limit the overall parallelism to this amount of jobs.'
+    ))
 
     args = args_to_parse.parse_args()
     for benchmark in benchmarks:
