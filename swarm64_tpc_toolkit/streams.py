@@ -129,7 +129,7 @@ class Streams:
             timing, query_result, plan = self._run_query(stream_id, query_id)
 
             runtime = timing.stop - timing.start
-            LOG.info(f'finished {pretext}: {runtime:.2f}s')
+            LOG.info(f'finished {pretext}: {runtime:.2f}s {timing.status.name}')
 
             reporting_queue.put(QueryMetric(
                 stream_id=stream_id,
