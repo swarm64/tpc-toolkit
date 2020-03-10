@@ -21,28 +21,26 @@ class Correctness:
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
 
-    def has_differences(self, first_df, second_df):
+    def has_differences(self, truth, result):
+        self.truth = truth
+        self.result = result
 
-        if first_df.empty != second_df.empty:
-            return True
-
-        first_df = first_df.round(2)
-        second_df = second_df.round(2)
-
-        for column in first_df:
-            a = first_df[column].sort_values()
-            b = second_df[column].sort_values()
-
-            if a.dtype == 'float64':
-                # absolute(a - b) <= (atol + rtol * absolute(b))
-                if not numpy.isclose(a, b, rtol=1e-12, atol=0).all():
-                    return True
-
-            else:
-                if not a.equals(b):
-                    return True
-
-        return False
+        for truth_idx, truth_row in truth.iterrows():
+            for result_idx, result_row in self.result.iterrows():
+                row_equal = True
+                for column in truth:
+                    if truth[column].dtype == 'float64':
+                        if not numpy.isclose(truth_row[column], result_row[column], rtol=1e-12, atol=0.01):
+                            row_equal = False
+                    else:
+                        if truth_row[column] != result_row[column]:
+                            row_equal = False
+                if row_equal:
+                    self.truth.drop(index=truth_idx, inplace=True)
+                    self.result.drop(index=result_idx, inplace=True)
+                    break
+            
+        return (not self.truth.empty) or (not self.result.empty)
 
     def check_correctness(self, stream_id, query_number):
 
@@ -50,82 +48,51 @@ class Correctness:
         correctness_path = self.get_correctness_filepath(query_number)
         benchmark_path = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
 
-        # Reading Correctness results
+        # Reading truth
         try:
-            correctness_result = pd.read_csv(correctness_path, float_precision='round_trip')
+            truth = pd.read_csv(correctness_path)
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
-            correctness_result = pd.DataFrame(columns=['col'])
+            truth = pd.DataFrame(columns=['col'])
         except FileNotFoundError:
             LOG.debug(f'Correctness results for {query_number} not found. Skipping correctness checking.')
             return 'OK'
 
         # Reading Benchmark results
         try:
-            benchmark_result = pd.read_csv(benchmark_path, float_precision='round_trip')
+            result = pd.read_csv(benchmark_path)
         except pd.errors.EmptyDataError:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
-            benchmark_result = pd.DataFrame(columns=['col'])
+            result = pd.DataFrame(columns=['col'])
         except FileNotFoundError:
             msg = f'Query results for {stream_id}-{query_number} not found. Reporting as mismatch.'
             LOG.debug(msg)
             self.html += f'<p>{msg}</p>'
             return 'Mismatch'
 
-        if self.has_differences(benchmark_result, correctness_result):
-            self.html += Correctness.to_html(self.diff,
-                                             table_title=f'Mismatch in StreamId={stream_id}, Query={query_number}')
+        # order the columns so that results are easier to compare
+        truth = truth.reindex(sorted(truth.columns), axis=1)
+        result = result.reindex(sorted(result.columns), axis=1)
+
+        # check that we have the same columns
+        if len(numpy.setdiff1d(truth.columns.values, result.columns.values)) > 0:
+            msg = f'Query {stream_id}-{query_number} has mismatching columns.'
+            LOG.debug(msg)
+            self.html += f'<p>{msg}</p>'
+            return 'Mismatch'
+
+        if self.has_differences(truth, result):
+            self.html += Correctness.to_html(self.truth,
+                                             table_title=f'Truth mismatch in StreamId={stream_id}, Query={query_number}')
+            self.html += Correctness.to_html(self.result,
+                                             table_title=f'Result mismatch in StreamId={stream_id}, Query={query_number}')
+
             return 'Mismatch'
 
         return 'OK'
 
     @staticmethod
     def to_html(df, table_title):
-
-        def highlight_difference(data, color='yellow'):
-            """
-
-            :param data: The data frame containing differences
-                            between benchmark and correctness results.
-            :param color: The color to highlight the differences.
-            :return: returns the highlighted data frame style.
-
-            If one of the results has additional rows, then the way to compare them is
-            1) to divide data frames into 2 parts
-            2) compare the part of data frames that have the same row counts,
-               find differences if any and highlight them
-            3) highlight all columns of the data frame that has additional rows
-            """
-            attr = 'background-color: {}'.format(color)
-            benchmark_data = data[data['source'] == 'benchmark results']
-            correctness_data = data[data['source'] == 'correctness results']
-            benchmark_rowcount, correctness_rowcount = benchmark_data.shape[0], correctness_data.shape[0]
-
-            minrowcount = min(benchmark_rowcount, correctness_rowcount)
-
-            # splitting benchmark results
-            benchmark_data_part_1 = benchmark_data.iloc[:minrowcount]
-            benchmark_data_part_2 = benchmark_data.iloc[minrowcount:]
-            # splitting correctness results
-            correctness_data_part1 = correctness_data.iloc[:minrowcount]
-            correctness_data_part2 = correctness_data.iloc[minrowcount:]
-
-            # prepare result style 1 and highlight the differences
-            is_equal = benchmark_data_part_1.values == correctness_data_part1.values
-            res_benchmark_style = pd.DataFrame(numpy.where(is_equal, '', attr), index=benchmark_data_part_1.index,
-                                               columns=benchmark_data_part_1.columns)
-            res_correctness_style = pd.DataFrame(numpy.where(is_equal, '', attr), index=correctness_data_part1.index,
-                                                 columns=correctness_data_part1.columns)
-            result_style_part_1 = pd.concat([res_benchmark_style, res_correctness_style])
-            result_style_part_1['source'] = result_style_part_1['source'].apply(lambda x: '')
-
-            # prepare result style 2 and highlight all of them
-            result_style_part_2 = pd.concat([benchmark_data_part_2, correctness_data_part2])
-            result_style_part_2.loc[:, :] = attr
-
-            result_style = pd.concat([result_style_part_1, result_style_part_2])
-            return result_style
-
         Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
 
-        return Swarm64Styler(df).apply(highlight_difference, axis=None).render(table_title=table_title)
+        return Swarm64Styler(df).render(table_title=table_title)
