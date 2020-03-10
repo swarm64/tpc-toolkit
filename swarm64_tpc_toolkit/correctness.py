@@ -26,6 +26,9 @@ class Correctness:
         if first_df.empty != second_df.empty:
             return True
 
+        first_df = first_df.round(2)
+        second_df = second_df.round(2)
+
         for column in first_df:
             a = first_df[column].sort_values()
             b = second_df[column].sort_values()
