@@ -40,7 +40,7 @@ class Streams:
         # │   │   ├── 0_1.txt
         # │   │   ├── 0_2.txt
 
-        self.config = Streams._make_config(args)
+        self.config = Streams._make_config(args, benchmark)
         self.db = DB(args.dsn)
         self.num_streams = args.streams
         self.benchmark = benchmark
@@ -50,11 +50,12 @@ class Streams:
         self.reporting = Reporting(benchmark, args, self.config)
 
     @staticmethod
-    def _make_config(args):
+    def _make_config(args, benchmark):
         config = {}
-        if args.config:
-            with open(args.config, 'r') as config_file:
-                config = yaml.load(config_file, Loader=yaml.Loader)
+        config_file = args.config or f'benchmarks/{benchmark.name}/configs/default.yaml'
+
+        with open(config_file, 'r') as conf_file:
+            config = yaml.load(conf_file, Loader=yaml.Loader)
 
         if args.timeout:
             config['timeout'] = args.timeout

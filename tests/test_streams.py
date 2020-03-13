@@ -28,14 +28,18 @@ def benchmark():
     return streams.Benchmark(name='tpch', base_dir='foo/bar')
 
 
-def test_make_config_no_config_file(mocker, args, benchmark):
-    yaml_mock = mocker.patch('yaml.load')
+def test_make_config_default_config_file(mocker, args, benchmark):
+    yaml_mock = mocker.patch('yaml.load', autospec=True)
 
     obj = streams.Streams(args, benchmark)
 
-    yaml_mock.assert_not_called()
+    yaml_mock.assert_called_once()
     assert 'timeout' not in obj.config
 
+def test_default_config_values(mocker, args, benchmark):
+    obj = streams.Streams(args, benchmark)
+
+    assert 'timeout','ignore' in obj.config
 
 def test_make_config_file_present(mocker, args, benchmark):
     mocker.patch('builtins.open', mocker.mock_open())
