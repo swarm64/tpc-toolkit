@@ -3,3 +3,8 @@ __pycache__
 *,cover
 venv
 .idea
+
+benchmarks/*
+!benchmarks/tpch
+!benchmarks/tpcds
+!benchmarks/ssb
