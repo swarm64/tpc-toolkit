@@ -32,20 +32,14 @@ class Correctness:
                     if truth[column].dtype == 'float64':
                         if not numpy.isclose(truth_row[column], result_row[column], rtol=1e-12, atol=0.01):
                             row_equal = False
-
-                    elif truth[column].dtype == 'object':
-                        if str(truth_row[column]) != str(result_row[column]):
-                            row_equal = False
-
                     else:
                         if truth_row[column] != result_row[column]:
                             row_equal = False
-
                 if row_equal:
                     self.truth.drop(index=truth_idx, inplace=True)
                     self.result.drop(index=result_idx, inplace=True)
                     break
-
+            
         return (not self.truth.empty) or (not self.result.empty)
 
     def check_correctness(self, stream_id, query_number):
