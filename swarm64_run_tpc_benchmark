@@ -58,12 +58,9 @@ if __name__ == '__main__':
         'With which stream to start if running multiple streams. Defaults to "1".'
     ))
 
-    args_to_parse.add_argument('--netdata-url', default=None, help=(
-        'The URL to netdata to fetch statistics from it.'
-    ))
-
-    args_to_parse.add_argument('--disk', required='--netdata-url' in sys.argv, help=(
-        'Which disk to grep statistics for. Only required if netdata-url is present.'
+    args_to_parse.add_argument('--netdata-output-file', default=None, help=(
+        'File to write netdata stats into. Requires "netdata" key to be '
+        'present in configuration.'
     ))
 
     args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', nargs='+',

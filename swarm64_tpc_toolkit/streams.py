@@ -17,6 +17,7 @@ import yaml
 
 from .db import DB
 from .correctness import Correctness
+from .netdata import Netdata
 
 
 Benchmark = namedtuple('Benchmark', ['name', 'base_dir'])
@@ -61,7 +62,7 @@ class Streams:
         self.config = Streams._make_config(args, benchmark)
         self.db = DB(args.dsn)
         self.num_streams = args.streams
-        self.netdata_url = args.netdata_url
+        self.netdata_output_file = args.netdata_output_file
         self.benchmark = benchmark
         self.query_dir = os.path.join(self.benchmark.base_dir, 'queries')
         self.stream_offset = args.stream_offset
@@ -151,6 +152,15 @@ class Streams:
             results = self.run_streams()
             totalstop = time.perf_counter()
             results_df = self.save_to_dataframe(results)
+
+            netdata_config = self.config.get('netdata')
+            if netdata_config and self.netdata_output_file:
+                if self.num_streams <= 1:
+                    netdata = Netdata(netdata_config)
+                    netdata.write_stats(results[0][0], self.netdata_output_file)
+                else:
+                    LOG.info('Running more than one stream. Not retrieving netdata stats.')
+
             results_with_correctness = self.add_correctness(results_df)
             self._print_results(results_with_correctness)
             LOG.info(f'Total time spent: {totalstop - totalstart:.2f} secs.')

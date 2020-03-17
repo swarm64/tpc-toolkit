@@ -12,13 +12,13 @@ def args():
         timeout = 0
         dsn = 'postgresql://noone@nowhere:4321/nothing'
         streams = 0
-        netdata_url = None
         stream_offset = 1
         output = 'csv'
         csv_file = 'results.csv'
         scale_factor = None
         explain_analyze = False
         check_correctness = False
+        netdata_output_file = 'foobar.dat'
 
     return DefaultArgs
 
