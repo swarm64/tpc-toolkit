@@ -11,37 +11,72 @@ from swarm64_tpc_toolkit.correctness import Correctness
 
 CSV_BASE = '''cnt,state,value
 20,HI,1.0
-29,DE,0.00000001
 45,RI,100000000000000000.0
 59,CT,123
+914,IA,9999999999.131413000000000000000000000000001
 101,NH,451
 120,,
-914,IA,999999999999.1239413000000000000000000000000001
-290,NM,0.000000000000000000000000000000000001
-986,,42
 988,IL,0.5
+290,NM,0.000000000000000000000000000000000001
+29,DE,0.00000001
+986,,42
 ,MO,
 1055,KS,
-2420,TX,1024'''
+2420,TX,1024
+-1,FOO,9999999999.139413000000000000000000000000001'''
 
-CSV_ERRORS_IDX = [1, 10, 12] # after sorting
+CSV_ERRORS_IDX = [3, 4, 8] # after sorting
 CSV_ERRORS = '''cnt,state,value
-20,HI,1.02
-29,DE,0.00000001
-45,RI,100000000000000000.0
-59,CT,123
+20,HI,1.0
+45,RI,
 101,NH,451
 120,,
-914,IA,999999999999.1239413000000000000000000000000001
-290,NM,0.000000000000000000000000000000000001
+59,CT,123
+988,IL,0.5
+,NM,0.000000000000000000000000000000000001
+914,IA,9999999999.131413000000000000000000000000001
+29,,0.00000001
 986,,42
-988,,0.5
 ,MO,
 1055,KS,
-2490,TX,1024'''
+2420,TX,1024
+-1,FOO,9999999999.139413000000000000000000000000001'''
+
+CSV_ERRORS_PRECISION_IDX = [9]
+CSV_ERRORS_PRECISION = '''cnt,state,value
+20,HI,1.0
+45,RI,100000000000000000.0
+59,CT,123
+914,IA,9999999999.149413000000000000000000000000001
+101,NH,451
+120,,
+988,IL,0.5
+290,NM,0.000000000000000000000000000000000001
+29,DE,0.00000001
+986,,42
+,MO,
+1055,KS,
+2420,TX,1024
+-1,FOO,9999999999.139413000000000000000000000000001'''
+
+CSV_WITHIN_PRECISION = '''cnt,state,value
+20,HI,1.0
+45,RI,100000000000000000.0
+59,CT,123
+914,IA,9999999999.131413000000000000000000000000001
+101,NH,451
+120,,
+988,IL,0.5
+290,NM,0.000000000000000000000000000000000001
+29,DE,0.00000001
+986,,42
+,MO,
+1055,KS,
+2420,TX,1024
+-1,FOO,9999999999.141413000000000000000000000000001'''
 
 
-ROWS_TO_DROP = [6]
+ROWS_TO_DROP = [6, 8]
 COLUMNS_TO_DROP = ['state']
 
 
@@ -58,9 +93,33 @@ def get_dataframe(source):
     return pandas.read_csv(source_io, sep=',')
 
 
+def test_correctness_truth_empty(correctness):
+    truth = pandas.DataFrame()
+    result = get_dataframe(CSV_BASE)
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == list(result.index)
+
+
+def test_correctness_result_empty(correctness):
+    truth = get_dataframe(CSV_BASE)
+    result = pandas.DataFrame()
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == list(truth.index)
+
+
 def test_correctness_full_equal(correctness):
     truth = get_dataframe(CSV_BASE)
     result = get_dataframe(CSV_BASE)
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == []
+
+
+def test_correctness_full_equal_within_precision(correctness):
+    truth = get_dataframe(CSV_BASE)
+    result = get_dataframe(CSV_WITHIN_PRECISION)
 
     mismatch_idx = correctness._check_correctness_impl(truth, result)
     assert mismatch_idx == []
@@ -156,3 +215,27 @@ def test_correctness_not_equal_randomized_full(correctness):
 
     mismatch_idx = correctness._check_correctness_impl(truth, result)
     assert mismatch_idx == CSV_ERRORS_IDX
+
+
+def test_correctness_not_equal_precision(correctness):
+    truth = get_dataframe(CSV_BASE)
+    result = get_dataframe(CSV_ERRORS_PRECISION)
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == CSV_ERRORS_PRECISION_IDX
+
+
+def test_value_swap_rows(correctness):
+    truth = pandas.DataFrame([[1, 2], [4, 5]])
+    result = pandas.DataFrame([[2, 1], [4, 5]])
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == [0]
+
+
+def test_value_swap_columns(correctness):
+    truth = pandas.DataFrame([[1, 4], [2, 5]])
+    result = pandas.DataFrame([[2, 4], [1, 5]])
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == [0, 1]

@@ -24,7 +24,9 @@ class Correctness:
 
     @classmethod
     def check_for_mismatches(cls, truth, result):
-        differences = result[~result.isin(truth).all(1)]
+        merge = truth.merge(result, indicator=True, how='left')
+        differences = merge.loc[lambda x: x['_merge'] != 'both']
+
         mismatches = []
         for index, _ in differences.iterrows():
             truth_row = truth.iloc[index]
@@ -34,8 +36,7 @@ class Correctness:
                 result_datum = result_row[column_name]
 
                 if truth.dtypes[column_name] == 'float64':
-                    matches = numpy.isclose(truth_datum, result_datum, rtol=1e-12, atol=0.01)
-
+                    matches = numpy.isclose(truth_datum, result_datum, rtol=1e-12, atol=0.001)
                 else:
                     matches = (truth_datum == result_datum)
 
@@ -47,12 +48,17 @@ class Correctness:
 
     def _check_correctness_impl(self, truth, result):
         def prepare(df):
-            df = df.fillna('').sort_index(axis=1)
+            # Sort columns
+            df = df.sort_index(axis=1)
+            # Natsort all rows
             df = df.reindex(index=order_by_index(df.index, index_natsorted(zip(df.to_numpy()))))
-            return df.reset_index(drop=True)
+            # Recreate index for comparison later
+            return df
 
-        # Shape must be same
-        if not truth.shape == result.shape:
+        if truth.empty != result.empty:
+            return list(result.index) if truth.empty else list(truth.index)
+
+        if truth.shape != result.shape:
             return list(truth.index)
 
         truth = prepare(truth)
