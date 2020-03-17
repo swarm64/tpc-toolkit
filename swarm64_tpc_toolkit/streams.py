@@ -179,7 +179,7 @@ class Streams:
             self.db.reset_config()
 
     def get_stream_sequence(self, stream_id):
-        streams_path = os.path.join(self.query_dir, 'streams.yaml')
+        streams_path = os.path.join(self.benchmark.base_dir, 'queries', 'streams.yaml')
         with open(streams_path, 'r') as streams_file:
             return yaml.load(streams_file, Loader=yaml.Loader)[stream_id]
 
