@@ -90,9 +90,6 @@ class Correctness:
                 result.iloc[mismatch_idx],
                 table_title=f'Result for StreamId={stream_id}, Query={query_number}')
 
-            import pdb
-            pdb.set_trace()
-
             return 'Mismatch'
 
         return 'OK'
