@@ -4,6 +4,7 @@ import logging
 import requests
 import pandas
 
+from natsort import natsorted
 
 LOG = logging.getLogger()
 
@@ -50,7 +51,9 @@ class Netdata:
             )
 
             netdata_df = self._get_data(timerange, 1)
-            data[name] = netdata_df.agg(self.metrics)
+
+            query_id = row['query_id']
+            data[query_id] = netdata_df.agg(self.metrics)
 
         return data
 
@@ -59,17 +62,28 @@ class Netdata:
         ts_to = Netdata.make_timestamp(df['timestamp_stop'].max())
         return self._get_data((ts_from, ts_to), resolution).sort_index()
 
-    def write_stats(self, df, output):
-        if len(df['stream_id'].unique()) == 1:
-            data = self._get_netdata_per_query(df, output)
-
-        else:
-            LOG.info('Running more than one stream. Netdata stats are written '
-                     'out without analysis.')
-            data = {'all': self.get_system_stats(df, 1)}
+    def _write_stats_per_query(self, df, output):
+        data = self._get_netdata_per_query(df, output)
+        query_ids = natsorted(data.keys())
 
         with open(output, 'w') as output_file:
-            for name, netdata_df in data.items():
-                output_file.write(f'{name}')
-                netdata_df.to_csv(output_file)
+            for query_id in query_ids:
+                output_file.write(f'{query_id}')
+                data[query_id].to_csv(output_file)
                 output_file.write('\n')
+
+    def _write_stats_no_breakdown(self, df, output):
+        LOG.info('Running more than one stream. Netdata stats are written '
+                 'out without analysis.')
+        netdata_df = self.get_system_stats(df, 1)
+
+        with open(output, 'w') as output_file:
+            output_file.write(f'all')
+            netdata_df.to_csv(output_file)
+            output_file.write('\n')
+
+    def write_stats(self, df, output):
+        if len(df['stream_id'].unique()) == 1:
+            self._write_stats_per_query(df, output)
+        else:
+            self._write_stats_no_breakdown(df, output)
