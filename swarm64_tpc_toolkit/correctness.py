@@ -45,6 +45,26 @@ class Correctness:
 
         return mismatches
 
+    def _check_correctness_impl(self, truth, result):
+        def prepare(df):
+            df = df.fillna('').sort_index(axis=1)
+            df = df.reindex(index=order_by_index(df.index, index_natsorted(zip(df.to_numpy()))))
+            return df.reset_index(drop=True)
+
+        # Shape must be same
+        if not truth.shape == result.shape:
+            return list(truth.index)
+
+        truth = prepare(truth)
+        result = prepare(result)
+
+        # Column names must be same
+        if not truth.columns.difference(result.columns).empty:
+            return list(truth.index)
+
+        mismatch_idx = Correctness.check_for_mismatches(truth, result)
+        return mismatch_idx
+
     def check_correctness(self, stream_id, query_number):
         LOG.debug(f'Checking Stream={stream_id}, Query={query_number}')
         correctness_path = self.get_correctness_filepath(query_number)
@@ -72,15 +92,7 @@ class Correctness:
             self.html += f'<p>{msg}</p>'
             return 'Mismatch'
 
-        def prepare(df):
-            df = df.fillna('').sort_index(axis=1)
-            df = df.reindex(index=order_by_index(df.index, index_natsorted(zip(df.to_numpy()))))
-            return df.reset_index(drop=True)
-
-        truth = prepare(truth)
-        result = prepare(result)
-
-        mismatch_idx = Correctness.check_for_mismatches(truth, result)
+        mismatch_idx = self._check_correctness_impl(truth, result)
         if mismatch_idx:
             self.html += Correctness.to_html(
                 truth.iloc[mismatch_idx],
