@@ -64,9 +64,9 @@ class Streams:
         self.num_streams = args.streams
         self.netdata_output_file = args.netdata_output_file
         self.benchmark = benchmark
-        self.query_dir = os.path.join(self.benchmark.base_dir, 'queries')
         self.stream_offset = args.stream_offset
         self.scale_factor = args.scale_factor
+        self.query_dir = self._get_query_dir()
 
         self.explain_analyze = args.explain_analyze
 
@@ -82,6 +82,12 @@ class Streams:
             config['timeout'] = args.timeout
 
         return config
+
+    def _get_query_dir(self):
+        _dir = os.path.join(self.benchmark.base_dir, 'queries')
+        if os.path.isdir(os.path.join(_dir, f'queries_{self.scale_factor}')):
+            _dir = os.path.join(_dir, f'queries_{self.scale_factor}')
+        return _dir
 
     def read_sql_file(self, query_id):
         query_path = os.path.join(self.query_dir, f'{query_id}.sql')
@@ -173,7 +179,7 @@ class Streams:
             self.db.reset_config()
 
     def get_stream_sequence(self, stream_id):
-        streams_path = os.path.join(self.query_dir, 'streams.yaml')
+        streams_path = os.path.join(self.benchmark.base_dir, 'queries', 'streams.yaml')
         with open(streams_path, 'r') as streams_file:
             return yaml.load(streams_file, Loader=yaml.Loader)[stream_id]
 
