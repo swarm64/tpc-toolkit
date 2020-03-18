@@ -1,8 +1,10 @@
 import logging
-import numpy
 import os
+
+import numpy as np
 import pandas as pd
 
+from natsort import index_natsorted, order_by_index
 from pandas.io.formats.style import Styler
 
 LOG = logging.getLogger()
@@ -21,29 +23,63 @@ class Correctness:
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
 
-    def has_differences(self, truth, result):
-        self.truth = truth
-        self.result = result
+    @classmethod
+    def check_for_mismatches(cls, truth, result):
+        merge = truth.merge(result, indicator=True, how='left')
+        differences = merge.loc[lambda x: x['_merge'] != 'both']
 
-        for truth_idx, truth_row in truth.iterrows():
-            for result_idx, result_row in self.result.iterrows():
-                row_equal = True
-                for column in truth:
-                    if truth[column].dtype == 'float64':
-                        if not numpy.isclose(truth_row[column], result_row[column], rtol=1e-12, atol=0.01):
-                            row_equal = False
+        mismatches = []
+        for index, _ in differences.iterrows():
+            truth_row = truth.iloc[index]
+            result_row = result.iloc[index]
+
+            for column_name, truth_datum in truth_row.iteritems():
+                result_datum = result_row[column_name]
+
+                if truth.dtypes[column_name] == 'float64':
+                    if np.isnan(truth_datum):
+                        matches = (np.isnan(result_datum) == True)
+                    elif np.isinf(truth_datum):
+                        matches = (np.isinf(result_datum) == True)
                     else:
-                        if truth_row[column] != result_row[column]:
-                            row_equal = False
-                if row_equal:
-                    self.truth.drop(index=truth_idx, inplace=True)
-                    self.result.drop(index=result_idx, inplace=True)
+                        matches = np.isclose(truth_datum, result_datum, rtol=1e-12, atol=0)
+                elif truth.dtypes[column_name] == 'object':
+                    matches = (str(truth_datum) == str(result_datum))
+                else:
+                    matches = (truth_datum == result_datum)
+
+                if not matches:
+                    mismatches.append(index)
                     break
-            
-        return (not self.truth.empty) or (not self.result.empty)
+
+        return mismatches
+
+    def _check_correctness_impl(self, truth, result):
+        def prepare(df):
+            # Sort columns
+            df = df.sort_index(axis=1)
+            # Natsort all rows
+            df = df.reindex(index=order_by_index(df.index, index_natsorted(zip(df.to_numpy()))))
+            # Recreate index for comparison later
+            return df
+
+        if truth.empty != result.empty:
+            return list(result.index) if truth.empty else list(truth.index)
+
+        if truth.shape != result.shape:
+            return list(truth.index)
+
+        truth = prepare(truth)
+        result = prepare(result)
+
+        # Column names must be same
+        if not truth.columns.difference(result.columns).empty:
+            return list(truth.index)
+
+        mismatch_idx = Correctness.check_for_mismatches(truth, result)
+        return mismatch_idx
 
     def check_correctness(self, stream_id, query_number):
-
         LOG.debug(f'Checking Stream={stream_id}, Query={query_number}')
         correctness_path = self.get_correctness_filepath(query_number)
         benchmark_path = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
@@ -70,22 +106,15 @@ class Correctness:
             self.html += f'<p>{msg}</p>'
             return 'Mismatch'
 
-        # order the columns so that results are easier to compare
-        truth = truth.reindex(sorted(truth.columns), axis=1)
-        result = result.reindex(sorted(result.columns), axis=1)
+        mismatch_idx = self._check_correctness_impl(truth, result)
+        if mismatch_idx:
+            self.html += Correctness.to_html(
+                truth.iloc[mismatch_idx],
+                table_title=f'Truth for StreamId={stream_id}, Query={query_number}')
 
-        # check that we have the same columns
-        if len(numpy.setdiff1d(truth.columns.values, result.columns.values)) > 0:
-            msg = f'Query {stream_id}-{query_number} has mismatching columns.'
-            LOG.debug(msg)
-            self.html += f'<p>{msg}</p>'
-            return 'Mismatch'
-
-        if self.has_differences(truth, result):
-            self.html += Correctness.to_html(self.truth,
-                                             table_title=f'Truth mismatch in StreamId={stream_id}, Query={query_number}')
-            self.html += Correctness.to_html(self.result,
-                                             table_title=f'Result mismatch in StreamId={stream_id}, Query={query_number}')
+            self.html += Correctness.to_html(
+                result.iloc[mismatch_idx],
+                table_title=f'Result for StreamId={stream_id}, Query={query_number}')
 
             return 'Mismatch'
 
