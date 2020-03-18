@@ -1,6 +1,7 @@
 import logging
-import numpy
 import os
+
+import numpy as np
 import pandas as pd
 
 from natsort import index_natsorted, order_by_index
@@ -36,7 +37,14 @@ class Correctness:
                 result_datum = result_row[column_name]
 
                 if truth.dtypes[column_name] == 'float64':
-                    matches = numpy.isclose(truth_datum, result_datum, rtol=1e-12, atol=0.001)
+                    if np.isnan(truth_datum):
+                        matches = (np.isnan(result_datum) == True)
+                    elif np.isinf(truth_datum):
+                        matches = (np.isinf(result_datum) == True)
+                    else:
+                        matches = np.isclose(truth_datum, result_datum, rtol=1e-12, atol=0)
+                elif truth.dtypes[column_name] == 'object':
+                    matches = (str(truth_datum) == str(result_datum))
                 else:
                     matches = (truth_datum == result_datum)
 
