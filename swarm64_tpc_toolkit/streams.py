@@ -17,6 +17,7 @@ import yaml
 
 from .db import DB
 from .correctness import Correctness
+from .netdata import Netdata
 
 
 Benchmark = namedtuple('Benchmark', ['name', 'base_dir'])
@@ -44,6 +45,7 @@ class Streams:
         self.output = args.output
         self.csv_file = args.csv_file
         if 'csv' in self.output:
+            Path(os.path.dirname(self.csv_file)).mkdir(parents=True, exist_ok=True)
             Path(self.csv_file).touch()
 
         self.results_root_dir = 'results'
@@ -57,28 +59,35 @@ class Streams:
             except OSError as exc:
                 LOG.exception(f'Could not create directory {self.results_root_dir}')
 
-        self.config = Streams._make_config(args)
+        self.config = Streams._make_config(args, benchmark)
         self.db = DB(args.dsn)
         self.num_streams = args.streams
-        self.netdata_url = args.netdata_url
+        self.netdata_output_file = args.netdata_output_file
         self.benchmark = benchmark
-        self.query_dir = os.path.join(self.benchmark.base_dir, 'queries')
         self.stream_offset = args.stream_offset
         self.scale_factor = args.scale_factor
+        self.query_dir = self._get_query_dir()
 
         self.explain_analyze = args.explain_analyze
 
     @staticmethod
-    def _make_config(args):
+    def _make_config(args, benchmark):
         config = {}
-        if args.config:
-            with open(args.config, 'r') as config_file:
-                config = yaml.load(config_file, Loader=yaml.Loader)
+        config_file = args.config or f'benchmarks/{benchmark.name}/configs/default.yaml'
+
+        with open(config_file, 'r') as conf_file:
+            config = yaml.load(conf_file, Loader=yaml.Loader)
 
         if args.timeout:
             config['timeout'] = args.timeout
 
         return config
+
+    def _get_query_dir(self):
+        _dir = os.path.join(self.benchmark.base_dir, 'queries')
+        if os.path.isdir(os.path.join(_dir, f'queries_{self.scale_factor}')):
+            _dir = os.path.join(_dir, f'queries_{self.scale_factor}')
+        return _dir
 
     def read_sql_file(self, query_id):
         query_path = os.path.join(self.query_dir, f'{query_id}.sql')
@@ -149,6 +158,15 @@ class Streams:
             results = self.run_streams()
             totalstop = time.perf_counter()
             results_df = self.save_to_dataframe(results)
+
+            netdata_config = self.config.get('netdata')
+            if netdata_config and self.netdata_output_file:
+                if self.num_streams <= 1:
+                    netdata = Netdata(netdata_config)
+                    netdata.write_stats(results[0][0], self.netdata_output_file)
+                else:
+                    LOG.info('Running more than one stream. Not retrieving netdata stats.')
+
             results_with_correctness = self.add_correctness(results_df)
             self._print_results(results_with_correctness)
             LOG.info(f'Total time spent: {totalstop - totalstart:.2f} secs.')
@@ -161,7 +179,7 @@ class Streams:
             self.db.reset_config()
 
     def get_stream_sequence(self, stream_id):
-        streams_path = os.path.join(self.query_dir, 'streams.yaml')
+        streams_path = os.path.join(self.benchmark.base_dir, 'queries', 'streams.yaml')
         with open(streams_path, 'r') as streams_file:
             return yaml.load(streams_file, Loader=yaml.Loader)[stream_id]
 

@@ -9,7 +9,7 @@ import sys
 from logging.config import fileConfig
 from swarm64_tpc_toolkit.streams import Streams, Benchmark
 
-fileConfig('configs/logging.ini')
+fileConfig('logging.ini')
 logger = logging.getLogger()
 
 if __name__ == '__main__':
@@ -58,12 +58,9 @@ if __name__ == '__main__':
         'With which stream to start if running multiple streams. Defaults to "1".'
     ))
 
-    args_to_parse.add_argument('--netdata-url', default=None, help=(
-        'The URL to netdata to fetch statistics from it.'
-    ))
-
-    args_to_parse.add_argument('--disk', required='--netdata-url' in sys.argv, help=(
-        'Which disk to grep statistics for. Only required if netdata-url is present.'
+    args_to_parse.add_argument('--netdata-output-file', default=None, help=(
+        'File to write netdata stats into. Requires "netdata" key to be '
+        'present in configuration.'
     ))
 
     args_to_parse.add_argument('--output', choices=['csv', 'print'], default='print', nargs='+',
@@ -82,7 +79,7 @@ if __name__ == '__main__':
     ))
 
     args_to_parse.add_argument('--scale-factor', choices=(10, 100, 300, 1000), type=int, default=None,
-                               required='--check-correctness' in sys.argv, help=(
+                               required='--check-correctness' or 'tpcds' in sys.argv, help=(
         'Scale Factor of correctness result to compare with the query output.'
     ))
 

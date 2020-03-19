@@ -41,16 +41,16 @@ def test_correctness_filepath(cc):
     assert filepath == f'{cc.correctness_results_folder}/1.csv'
 
 
-def test_has_differences(cc):
+def check_for_mismatches(cc):
     first_df = pd.DataFrame(columns=['col'])
     second_df = pd.DataFrame(columns=['col'])
     foobar = {'foo': ['Hello'], 'bar': ['World']}
 
-    assert not cc.has_differences(first_df, second_df)
-    assert cc.has_differences(first_df, pd.DataFrame(foobar))
-    assert cc.has_differences(pd.DataFrame(foobar), second_df)
-    assert not cc.has_differences(pd.DataFrame(foobar), pd.DataFrame(foobar))
-    assert cc.has_differences(pd.DataFrame({'foobar': ['Hello']}),
+    assert not cc.check_for_mismatches(first_df, second_df)
+    assert cc.check_for_mismatches(first_df, pd.DataFrame(foobar))
+    assert cc.check_for_mismatches(pd.DataFrame(foobar), second_df)
+    assert not cc.check_for_mismatches(pd.DataFrame(foobar), pd.DataFrame(foobar))
+    assert cc.check_for_mismatches(pd.DataFrame({'foobar': ['Hello']}),
                               pd.DataFrame({'foobar': ['World']}))
 
 

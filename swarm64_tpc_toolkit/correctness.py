@@ -1,8 +1,10 @@
 import logging
-import numpy
 import os
+
+import numpy as np
 import pandas as pd
 
+from natsort import index_natsorted, order_by_index
 from pandas.io.formats.style import Styler
 
 LOG = logging.getLogger()
@@ -21,111 +23,105 @@ class Correctness:
         filepath = os.path.join(self.correctness_results_folder, f'{query_id}.csv')
         return filepath
 
-    def has_differences(self, first_df, second_df):
+    @classmethod
+    def check_for_mismatches(cls, truth, result):
+        merge = truth.merge(result, indicator=True, how='left')
+        differences = merge.loc[lambda x: x['_merge'] != 'both']
 
-        if first_df.empty != second_df.empty:
-            return True
+        mismatches = []
+        for index, _ in differences.iterrows():
+            truth_row = truth.iloc[index]
+            result_row = result.iloc[index]
 
-        first_df = first_df.round(2)
-        second_df = second_df.round(2)
+            for column_name, truth_datum in truth_row.iteritems():
+                result_datum = result_row[column_name]
 
-        for column in first_df:
-            a = first_df[column].sort_values()
-            b = second_df[column].sort_values()
+                if truth.dtypes[column_name] == 'float64':
+                    if np.isnan(truth_datum):
+                        matches = (np.isnan(result_datum) == True)
+                    elif np.isinf(truth_datum):
+                        matches = (np.isinf(result_datum) == True)
+                    else:
+                        matches = np.isclose(truth_datum, result_datum, rtol=1e-12, atol=0)
+                elif truth.dtypes[column_name] == 'object':
+                    matches = (str(truth_datum) == str(result_datum))
+                else:
+                    matches = (truth_datum == result_datum)
 
-            if a.dtype == 'float64':
-                # absolute(a - b) <= (atol + rtol * absolute(b))
-                if not numpy.isclose(a, b, rtol=1e-12, atol=0).all():
-                    return True
+                if not matches:
+                    mismatches.append(index)
+                    break
 
-            else:
-                if not a.equals(b):
-                    return True
+        return mismatches
 
-        return False
+    def _check_correctness_impl(self, truth, result):
+        def prepare(df):
+            # Sort columns
+            df = df.sort_index(axis=1)
+            # Natsort all rows
+            df = df.reindex(index=order_by_index(df.index, index_natsorted(zip(df.to_numpy()))))
+            # Recreate index for comparison later
+            return df
+
+        if truth.empty != result.empty:
+            return list(result.index) if truth.empty else list(truth.index)
+
+        if truth.shape != result.shape:
+            return list(truth.index)
+
+        truth = prepare(truth)
+        result = prepare(result)
+
+        # Column names must be same
+        if not truth.columns.difference(result.columns).empty:
+            return list(truth.index)
+
+        mismatch_idx = Correctness.check_for_mismatches(truth, result)
+        return mismatch_idx
 
     def check_correctness(self, stream_id, query_number):
-
         LOG.debug(f'Checking Stream={stream_id}, Query={query_number}')
         correctness_path = self.get_correctness_filepath(query_number)
         benchmark_path = os.path.join(self.query_output_folder, f'{stream_id}_{query_number}.csv')
 
-        # Reading Correctness results
+        # Reading truth
         try:
-            correctness_result = pd.read_csv(correctness_path, float_precision='round_trip')
+            truth = pd.read_csv(correctness_path)
         except pd.errors.EmptyDataError:
             LOG.debug(f'Query {query_number} is empty in correctness results.')
-            correctness_result = pd.DataFrame(columns=['col'])
+            truth = pd.DataFrame(columns=['col'])
         except FileNotFoundError:
             LOG.debug(f'Correctness results for {query_number} not found. Skipping correctness checking.')
             return 'OK'
 
         # Reading Benchmark results
         try:
-            benchmark_result = pd.read_csv(benchmark_path, float_precision='round_trip')
+            result = pd.read_csv(benchmark_path)
         except pd.errors.EmptyDataError:
             LOG.debug(f'{stream_id}_{query_number}.csv empty in benchmark results.')
-            benchmark_result = pd.DataFrame(columns=['col'])
+            result = pd.DataFrame(columns=['col'])
         except FileNotFoundError:
             msg = f'Query results for {stream_id}-{query_number} not found. Reporting as mismatch.'
             LOG.debug(msg)
             self.html += f'<p>{msg}</p>'
             return 'Mismatch'
 
-        if self.has_differences(benchmark_result, correctness_result):
-            self.html += Correctness.to_html(self.diff,
-                                             table_title=f'Mismatch in StreamId={stream_id}, Query={query_number}')
+        mismatch_idx = self._check_correctness_impl(truth, result)
+        if mismatch_idx:
+            self.html += Correctness.to_html(
+                truth.iloc[mismatch_idx],
+                table_title=f'Truth for StreamId={stream_id}, Query={query_number}')
+
+            self.html += Correctness.to_html(
+                result.iloc[mismatch_idx],
+                table_title=f'Result for StreamId={stream_id}, Query={query_number}')
+
             return 'Mismatch'
 
         return 'OK'
 
     @staticmethod
     def to_html(df, table_title):
-
-        def highlight_difference(data, color='yellow'):
-            """
-
-            :param data: The data frame containing differences
-                            between benchmark and correctness results.
-            :param color: The color to highlight the differences.
-            :return: returns the highlighted data frame style.
-
-            If one of the results has additional rows, then the way to compare them is
-            1) to divide data frames into 2 parts
-            2) compare the part of data frames that have the same row counts,
-               find differences if any and highlight them
-            3) highlight all columns of the data frame that has additional rows
-            """
-            attr = 'background-color: {}'.format(color)
-            benchmark_data = data[data['source'] == 'benchmark results']
-            correctness_data = data[data['source'] == 'correctness results']
-            benchmark_rowcount, correctness_rowcount = benchmark_data.shape[0], correctness_data.shape[0]
-
-            minrowcount = min(benchmark_rowcount, correctness_rowcount)
-
-            # splitting benchmark results
-            benchmark_data_part_1 = benchmark_data.iloc[:minrowcount]
-            benchmark_data_part_2 = benchmark_data.iloc[minrowcount:]
-            # splitting correctness results
-            correctness_data_part1 = correctness_data.iloc[:minrowcount]
-            correctness_data_part2 = correctness_data.iloc[minrowcount:]
-
-            # prepare result style 1 and highlight the differences
-            is_equal = benchmark_data_part_1.values == correctness_data_part1.values
-            res_benchmark_style = pd.DataFrame(numpy.where(is_equal, '', attr), index=benchmark_data_part_1.index,
-                                               columns=benchmark_data_part_1.columns)
-            res_correctness_style = pd.DataFrame(numpy.where(is_equal, '', attr), index=correctness_data_part1.index,
-                                                 columns=correctness_data_part1.columns)
-            result_style_part_1 = pd.concat([res_benchmark_style, res_correctness_style])
-            result_style_part_1['source'] = result_style_part_1['source'].apply(lambda x: '')
-
-            # prepare result style 2 and highlight all of them
-            result_style_part_2 = pd.concat([benchmark_data_part_2, correctness_data_part2])
-            result_style_part_2.loc[:, :] = attr
-
-            result_style = pd.concat([result_style_part_1, result_style_part_2])
-            return result_style
-
         Swarm64Styler = Styler.from_custom_template("resources", "report.tpl")
 
-        return Swarm64Styler(df).apply(highlight_difference, axis=None).render(table_title=table_title)
+        return Swarm64Styler(df).render(table_title=table_title)

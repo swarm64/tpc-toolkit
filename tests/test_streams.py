@@ -12,13 +12,13 @@ def args():
         timeout = 0
         dsn = 'postgresql://noone@nowhere:4321/nothing'
         streams = 0
-        netdata_url = None
         stream_offset = 1
         output = 'csv'
         csv_file = 'results.csv'
         scale_factor = None
         explain_analyze = False
         check_correctness = False
+        netdata_output_file = 'foobar.dat'
 
     return DefaultArgs
 
@@ -28,14 +28,18 @@ def benchmark():
     return streams.Benchmark(name='tpch', base_dir='foo/bar')
 
 
-def test_make_config_no_config_file(mocker, args, benchmark):
-    yaml_mock = mocker.patch('yaml.load')
+def test_make_config_default_config_file(mocker, args, benchmark):
+    yaml_mock = mocker.patch('yaml.load', autospec=True)
 
     obj = streams.Streams(args, benchmark)
 
-    yaml_mock.assert_not_called()
+    yaml_mock.assert_called_once()
     assert 'timeout' not in obj.config
 
+def test_default_config_values(mocker, args, benchmark):
+    obj = streams.Streams(args, benchmark)
+
+    assert 'timeout','ignore' in obj.config
 
 def test_make_config_file_present(mocker, args, benchmark):
     mocker.patch('builtins.open', mocker.mock_open())
