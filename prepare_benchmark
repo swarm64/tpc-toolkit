@@ -11,7 +11,7 @@ import importlib.util
 from logging.config import fileConfig
 from swarm64_tpc_toolkit.streams import Streams, Benchmark
 
-fileConfig('configs/logging.ini')
+fileConfig('logging.ini')
 logger = logging.getLogger()
 
 if __name__ == '__main__':
