@@ -1,3 +1,4 @@
+
 import logging
 import os
 
@@ -24,6 +25,10 @@ class Correctness:
         return filepath
 
     @classmethod
+    def round_to_precision(cls, value):
+        return '%.12g' % float('%.2f' % value)
+
+    @classmethod
     def check_for_mismatches(cls, truth, result):
         merge = truth.merge(result, indicator=True, how='left')
         differences = merge.loc[lambda x: x['_merge'] != 'both']
@@ -42,7 +47,9 @@ class Correctness:
                     elif np.isinf(truth_datum):
                         matches = (np.isinf(result_datum) == True)
                     else:
-                        matches = np.isclose(truth_datum, result_datum, rtol=1e-12, atol=0)
+                        matches = (
+                            cls.round_to_precision(truth_datum) == cls.round_to_precision(result_datum))
+
                 elif truth.dtypes[column_name] == 'object':
                     matches = (str(truth_datum) == str(result_datum))
                 else:
