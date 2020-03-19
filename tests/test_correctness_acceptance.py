@@ -128,7 +128,7 @@ def test_correctness_full_equal_column_swapped(correctness):
 def test_correctness_precision(correctness):
     CSV_PRECISION_A = '''id,value
     1,9999999999.1349
-    2,9999999999.1349'''
+    2,9999999999.1399'''
     truth = get_dataframe(CSV_PRECISION_A)
 
     CSV_PRECISION_B = '''id,value
@@ -138,6 +138,14 @@ def test_correctness_precision(correctness):
 
     mismatch_idx = correctness._check_correctness_impl(truth, result)
     assert mismatch_idx == [0]
+
+
+def test_tpch_precision(correctness):
+    truth = pandas.DataFrame([[0.05000012926042882], [0.04999679231408742]])
+    result = pandas.DataFrame([[0.0499967923141588], [0.0500001292604431]])
+
+    mismatch_idx = correctness._check_correctness_impl(truth, result)
+    assert mismatch_idx == []
 
 
 def test_correctness_full_equal_within_precision(correctness):
