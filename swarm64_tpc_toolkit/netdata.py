@@ -17,13 +17,21 @@ class Netdata:
     def _get_data(self, timerange, resolution):
         data = pandas.DataFrame()
         for chart, dimensions in self.charts.items():
-            result = requests.get(self.url, params={
+            response = requests.get(self.url, params={
                 'chart': chart,
                 'after': timerange[0],
                 'before': timerange[1],
                 'dimensions': ','.join(dimensions),
                 'gtime': resolution
-            }).json()
+            })
+
+            status_code = response.status_code
+            if status_code != 200:
+                LOG.warning(f'Netdata response not 200, but {status_code} '
+                            f'for chart {chart}.')
+                continue
+
+            result = response.json()
 
             columns = ['time']
             columns.extend([f'{chart}.{dimension}' for dimension in dimensions])
