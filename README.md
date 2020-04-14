@@ -1,3 +1,5 @@
+Note: This tool is deprecated. Please use the [Swarm64 DA Benchmark Toolkit](https://github.com/swarm64/s64da-benchmark-toolkit) instead
+
 # Summary
 
 This toolkit provides methods to execute the TPC-H, TPC-DS, and SSB benchmark on
@@ -26,12 +28,17 @@ Swarm64 DA and native PostgreSQL.
         --schema=<schema-to-deploy> \
         --scale-factor=<scale-factor-to-use> \
         --dbname=<target-db>
+  
+    For example in `schemas/tpch`:
+```
+        ./loader.sh --schema=sdb_all_tables --scale-factor=1000 --dbname=example-database
+```
 
 ### Required Parameters
 
    | Parameter      | Description                                            |
    | -------------- | ------------------------------------------------------ |
-   | `schema`       | The schema to deploy. Schemas are directories in the current working directory and start with either `sdb_` or `psql_`. The schema name equals the directory name. |
+   | `schema`       | The schema to deploy. Schemas are directories the benchmarks/\<benchmark\>/schemas directory and start with either `sdb_`, `s64da_`, or `psql_`. The schema name equals the directory name. |
    | `scale-factor` | The scale factor to use, such as `10`, `100` or `1000`.      |
    | `dbname`       | The name of the target database. If the database does not exist, it will be created. If it does exist, it will be deleted and recreated.    |
 
